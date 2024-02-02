@@ -1,4 +1,4 @@
-#include "Protheus.ch"
+#include "totvs.ch"
 //-------------------------------------------------------------------
 /*/{Protheus.doc} xMBrowse
 Tela de criação de pessoas
