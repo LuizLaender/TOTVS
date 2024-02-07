@@ -20,7 +20,7 @@ AAdd(aRotina, {"Visualizar" ,"AxVisual" ,0,2})
 AAdd(aRotina, {"Incluir"    ,"AxInclui" ,0,3})
 AAdd(aRotina, {"Alterar"    ,"AxAltera" ,0,4})
 AAdd(aRotina, {"Excluir"    ,"AxDeleta" ,0,5})
-AAdd(aRotina, {"Relatorio"  ,"U_TRpt001",0,6})
+AAdd(aRotina, {"Relatorio"  ,"U_TRpt001",0,4})
 
 DBSelectArea(cAlias)
 DBSetOrder(1)
