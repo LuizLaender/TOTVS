@@ -1,0 +1,7 @@
+No arquivo "newreport.prw" criei uma função de usuário "TRpt001()" - linha 4 - que retorna "oReport" - linha 50 - (responsavel por definir a estrutura do relatório ultilizando a classe TReport), 
+
+tal objeto "oReport" recebe valores da classe "TReport" - linha 42 - (responsavel por manipular e gerar relatórios),
+
+tal "TReport" recebe valores de "cAlias" - linha 42 -,
+
+"cAlias" contém os resultados da consulta SQL - linha 21 -
