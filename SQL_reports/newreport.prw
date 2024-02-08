@@ -1,6 +1,7 @@
 #include 'Totvs.ch'
 #include 'TopConn.ch'
 
+
 User Function TRpt001()
 
     Local oReport
@@ -11,6 +12,7 @@ User Function TRpt001()
     oReport:PrintDialog()
 
 Return
+
 
 Static Function RPrint(oReport,cAlias)
 
@@ -32,19 +34,20 @@ Static Function RPrint(oReport,cAlias)
         oSecao1:Print()
 Return
 
-Static Function RptStruc(cAlias)
 
-Local cTitulo := "Pessoas"
-Local cHelp := "Imprime relatório"
-Local oReport
-Local oSection1
+    Static Function RptStruc(cAlias)
 
-oReport := TReport():New('TRpt001',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
+    Local cTitulo := "Pessoas"
+    Local cHelp := "Imprime relatório"
+    Local oReport
+    Local oSection1
 
-oSection1 := TRSection():New(oReport, "Pessoas", {cAlias})
+    oReport := TReport():New('TRpt001',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
 
-TRCell():New(oSection1,"ZA1_COD"    , "ZA1", "Codigo"           )
-TRCell():New(oSection1,"ZA1_DESC"   , "ZA1", "Descricao"        )
-TRCell():New(oSection1,"ZA1_NOME"   , "ZA1", "Primeiro nome"    )
+    oSection1 := TRSection():New(oReport, "Pessoas", {cAlias})
+
+    TRCell():New(oSection1,"ZA1_COD"    , "ZA1", "Codigo"           )
+    TRCell():New(oSection1,"ZA1_DESC"   , "ZA1", "Descricao"        )
+    TRCell():New(oSection1,"ZA1_NOME"   , "ZA1", "Primeiro nome"    )
 
 Return (oReport)
