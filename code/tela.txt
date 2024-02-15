@@ -1,1 +1,0 @@
-O codigo "tela.prw" cria uma tela no Protheus ultilizando a linguagem ADVPL da TOTVS. Nela ultilizei a função XMBROWSE na linha 28 para criação de tela e customização.
