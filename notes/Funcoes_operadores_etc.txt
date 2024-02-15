@@ -1,0 +1,20 @@
+$           Contido em.
+:=          Recebe.
+:           Chamda de função.
+
+RecNo()         Retorna o número do registro atualmente posicionado.
+DBEval()        Executa a expressão definida pelo bloco de código do primeiro parâmetro.
+DBGoTop()       Posiciona no primeiro registro da tabela atual.
+RestArea()      Reponsável por fazer um "backup" do processo atual do Protheus, enquanto executamos o código entre GetArea() e RestArea().
+rpcSetEnv()     Inicializa o ambiente.
+File()          Verifica se o arquivo existe.
+fErase()        Deleta o arquivo.
+fCreate()       Cria o arquivo.
+fAlertError()   Exibe janela de erro.
+rpcClearEnv()   Libera o ambiente aberto.
+padr()          Manipula caracteres à direita.
+len()           Conta quantos caracteres.
+fWrite()        Escreve os dados desejados no arquivo (Retorna quantos caracteres serão escritos).
+fClose()        Encerra a gravação do arquivo.
+space()         Retorna string com uma quantidade especificada de espaços.
+strtran()       Pesquisa e substitui caracteres em uma string.
