@@ -1,7 +1,7 @@
 #Include "totvs.ch"
 #Include "protheus.ch"
 
-Function U_CRIAR_ARQUIVO_TEXTO
+Function U_RELAT_SEM_QUERY_TEXTO
 
     Local cSaveFile as character    // Local de armazenamento do arquivo.
     Local cBuffer   as character    // Contém o conteúdo que será escrito.
@@ -19,8 +19,10 @@ Function U_CRIAR_ARQUIVO_TEXTO
     // len()         = Conta quantos caracteres.
     // fWrite()      = Escreve os dados desejados no arquivo (Retorna quantos caracteres serão escritos).
     // fClose()      = Encerra a gravação do arquivo.
+    // space()       = Retorna string com uma quantidade especificada de espaços.
+    // strtran()     = Pesquisa e substitui caracteres em uma string.
 
-    rpcSetEnv('99','01') // Define qual licensa Protheus será consumida.
+    //rpcSetEnv('99','0101') // Define qual licensa Protheus será consumida.
 
     cSaveFile   := 'C:\VSCodeWorkspace\ADVPL_Course\FCreate.txt' // Define o local de criação do arquivo.
 
@@ -42,13 +44,24 @@ Function U_CRIAR_ARQUIVO_TEXTO
 
     If nWrite <> nBuffer // Se a escrita(nWrite) de caracteres for diferente do desejado(nBuffer), ocorreu algum erro.
         fwAlertError("Erro ao efetuar a gravação do arquivo. Código do erro: " + Str(fError(),4), "ERRO")
-        fClose(nWrite()) // Encerra a gravação do arquivo.
+        fClose(nHandle()) // Encerra a gravação do arquivo.
         rpcClearEnv() // Libera licensa Protheus.
         Return .F. // Retorna falso para a user function, já que o programa não funcionou corretamente.
     EndIf
 
-    cBuffer     := CRLF + space(40)
+    cBuffer     := CRLF + strtran(space(40)," ", "-") // Exibe na tela uma série de hífens logo após a primeira linha.
+    nBuffer     := len(cBuffer) // Recebe a quantidade de caracteres em cBuffer.
+    nWrite      := fWrite(nHandle,cBuffer) // Recebe a quantidades de caracteres em fWrite.
 
-    rpcClearEnv() // Libera licensa Protheus.
+    If nWrite <> nBuffer // Se a escrita(nWrite) de caracteres for diferente do desejado(nBuffer), ocorreu algum erro.
+        fwAlertError("Erro ao efetuar a gravação do arquivo. Código do erro: " + Str(fError(),4), "ERRO")
+        fClose(nHandle()) // Encerra a gravação do arquivo.
+        rpcClearEnv() // Libera licensa Protheus.
+        Return .F. // Retorna falso para a user function, já que o programa não funcionou corretamente.
+    EndIf
+
+    fClose(nHandle())
+
+    //rpcClearEnv() // Libera licensa Protheus.
 
 Return
