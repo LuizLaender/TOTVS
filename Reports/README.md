@@ -1,0 +1,1 @@
+Here I'll be posting reports that I've built while working for TOTVS. These can be for example based on SQL Queries or using while loops with direct access to tables.
