@@ -1,7 +1,6 @@
 #include 'Totvs.ch'
 #include 'TopConn.ch'
 
-
 User Function RELAT4()
 
     Local oReport
@@ -13,6 +12,31 @@ User Function RELAT4()
 
 Return
 
+Static Function RptStruc(cAlias)
+
+    Local cTitulo := "Pessoas"
+    Local cHelp := "Imprime relatório"
+    Local oReport
+    Local oSection1
+    Local oSection2
+
+    oReport := TReport():New('RELAT4',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
+
+    oSection1 := TRSection():New(oReport,"NFs"  , {cAlias})
+    TRCell():New(oSection1,"F1_DOC"     ,"SF1"  ,"N. Doc"           ,,27)
+    TRCell():New(oSection1,"F1_SERIE"   ,"SF1"	,"Serie"            ,,27)
+    TRCell():New(oSection1,"F1_FORNECE" ,"SF1"	,"Cod. Fornecedor"  ,,27)
+    TRCell():New(oSection1,"F1_EMISSAO" ,"SF1"	,"Data Emissao"     ,,27)
+
+    oSection2 := TRSection():New(oReport,"Itens", {cAlias})
+    TRCell():New(oSection2,"D1_ITEM"    ,"SF1"  ,"Item"             ,,27)
+    TRCell():New(oSection2,"D1_COD"     ,"SF1"  ,"Cod. Produto"     ,,27)
+    TRCell():New(oSection2,"B1_DESC"    ,"SB1"  ,"Descricao"        ,,27)
+    TRCell():New(oSection2,"D1_QUANT"   ,"SF1"  ,"Quantidade"       ,,27)
+    TRCell():New(oSection2,"D1_VUNIT"   ,"SF1"  ,"Valor Unitario"   ,,27)
+    TRCell():New(oSection2,"D1_TOTAL"   ,"SF1"  ,"Valor Total"      ,,27)
+
+Return (oReport)
 
 Static Function RPrint(oReport,cAlias)
 
@@ -54,31 +78,5 @@ Static Function RPrint(oReport,cAlias)
         oSection2:Print()
         
         oReport:SetMeter((cAlias)->(RecCount()))
+        
 Return
-
-
-Static Function RptStruc(cAlias)
-
-    Local cTitulo := "Pessoas"
-    Local cHelp := "Imprime relatório"
-    Local oReport
-    Local oSection1
-    Local oSection2
-
-    oReport := TReport():New('RELAT4',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
-
-    oSection1 := TRSection():New(oReport,"NFs"  , {cAlias})
-    TRCell():New(oSection1,"F1_DOC"     ,"SF1"  ,"N. Doc"           ,,27)
-    TRCell():New(oSection1,"F1_SERIE"   ,"SF1"	,"Serie"            ,,27)
-    TRCell():New(oSection1,"F1_FORNECE" ,"SF1"	,"Cod. Fornecedor"  ,,27)
-    TRCell():New(oSection1,"F1_EMISSAO" ,"SF1"	,"Data Emissao"     ,,27)
-
-    oSection2 := TRSection():New(oReport,"Itens", {cAlias})
-    TRCell():New(oSection2,"D1_ITEM"    ,"SF1"  ,"Item"             ,,27)
-    TRCell():New(oSection2,"D1_COD"     ,"SF1"  ,"Cod. Produto"     ,,27)
-    TRCell():New(oSection2,"B1_DESC"    ,"SB1"  ,"Descricao"        ,,27)
-    TRCell():New(oSection2,"D1_QUANT"   ,"SF1"  ,"Quantidade"       ,,27)
-    TRCell():New(oSection2,"D1_VUNIT"   ,"SF1"  ,"Valor Unitario"   ,,27)
-    TRCell():New(oSection2,"D1_TOTAL"   ,"SF1"  ,"Valor Total"      ,,27)
-
-Return (oReport)
