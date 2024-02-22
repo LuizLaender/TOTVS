@@ -2,7 +2,7 @@
 #include 'TopConn.ch'
 
 
-User Function RELAT2()
+User Function RELAT4()
 
     Local oReport
     Local cAlias := getNextAlias()
@@ -22,8 +22,8 @@ Static Function RPrint(oReport,cAlias)
 
         BeginSQL Alias cAlias
 
-            SELECT ZA1_COD, ZA1_NOMEC, ZA1_NOME
-            FROM %Table:ZA1% ZA1
+            SELECT F1_DOC, F1_SERIE, F1_FORNECE, F1_EMISSAO
+            FROM %Table:SF1% SF1
             WHERE D_E_L_E_T_ =''
 
         EndSQL
@@ -42,12 +42,14 @@ Static Function RptStruc(cAlias)
     Local oReport
     Local oSection1
 
-    oReport := TReport():New('RELAT2',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
+    oReport := TReport():New('RELAT4',cTitulo,/**/,{|oReport|RPrint(oReport, cAlias)},cHelp)
 
     oSection1 := TRSection():New(oReport, "Pessoas", {cAlias})
 
-    TRCell():New(oSection1,"ZA1_COD"    , "ZA1", "Codigo"           )
-    TRCell():New(oSection1,"ZA1_NOMEC"   , "ZA1", "Nome completo"        )
-    TRCell():New(oSection1,"ZA1_NOME"   , "ZA1", "Primeiro nome"    )
+    TRCell():New(oSection1,"F1_DOC"     ,"SF1"      ,"N. Doc"           ,,27)
+    TRCell():New(oSection1,"F1_SERIE"   ,"SF1"		,"Serie"            ,,27)
+    TRCell():New(oSection1,"F1_FORNECE" ,"SF1"		,"Cod. Fornecedor"  ,,27)
+    TRCell():New(oSection1,"F1_EMISSAO" ,"SF1"		,"Data Emissao"     ,,27)
+
 
 Return (oReport)
