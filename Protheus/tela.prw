@@ -10,7 +10,7 @@ Tela de criação de pessoas
 //-------------------------------------------------------------------
 User Function ESTAG010()
 
-    Local cAlias := "ZA1"
+    Local cAlias := "SF1"
 
     Private cCadastro   := "Cadastro de Pessoas Teste"
     Private aRotina     := { }
@@ -20,7 +20,7 @@ User Function ESTAG010()
     AAdd(aRotina, {"Incluir"    ,"AxInclui" ,0,3})
     AAdd(aRotina, {"Alterar"    ,"AxAltera" ,0,4})
     AAdd(aRotina, {"Excluir"    ,"AxDeleta" ,0,5})
-    AAdd(aRotina, {"Relatorio"  ,"U_RELAT2" ,0,4})
+    AAdd(aRotina, {"Relatorio"  ,"U_RELAT3" ,0,4})
 
     DBSelectArea(cAlias)
     DBSetOrder(1)
