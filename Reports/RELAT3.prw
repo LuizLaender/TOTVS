@@ -41,15 +41,13 @@ Static Function RPrint(oReport)
             oSection2:init()
             oSection2:PrintLine()
 
-            oReport:ThinLine()
+            // oReport:ThinLine()
 
             SD1->(DbSkip())
 
         EndDo
 
         oSection2:Finish()
-
-
 
         SF1->(DbSkip())
         
@@ -78,6 +76,6 @@ Static Function RptStruc()
         TRCell():New(oSection2,"D1_VUNIT"   ,"SD1",,,27)
         TRCell():New(oSection2,"D1_TOTAL"   ,"SD1",,,27)
 
-        TRFunction():New(oSection2:Cell("D1_TOTAL"),,"SUM")
+        TRFunction():New(oSection2:Cell("D1_TOTAL"),,"SUM",,,,,.T.)
 
 Return
