@@ -12,7 +12,7 @@ User Function MIT01()
 
     Local cAlias := "ZB1"
 
-    Private cCadastro   := "Prestação de contas"
+    Private cCadastro   := "MIT"
     Private aRotina     := { }
 
     AAdd(aRotina, {"Pesquisar"  ,"AxPesqui" ,0,1})
