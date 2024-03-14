@@ -1,7 +1,7 @@
 #INCLUDE 'FWMVCDEF.CH'
 #include "totvs.ch"
 
-Static cTitulo := "MIT"
+Static cTitulo := "Tela MIT"
 Static cAliasMVC := "ZB1"
 
 /*/-------------------------------------
@@ -59,25 +59,25 @@ Static Function MenuDef()
 
     Local aRotina := {}
 
-    ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MIT" OPERATION 2 ACCESS 0
+    ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MVC" OPERATION 2 ACCESS 0
 
     // Apenas funcionarios podem incluir
     If cUserName != GetMV("MZ_APRPC")
-        ADD OPTION aRotina TITLE "Incluir"      ACTION "VIEWDEF.MIT" OPERATION 3 ACCESS 0
+        ADD OPTION aRotina TITLE "Incluir"      ACTION "VIEWDEF.MVC" OPERATION 3 ACCESS 0
     EndIf
 
     // Apenas funcionarios podem alterar (suas próprias inclusões)
     If cUserName != GetMV("MZ_APRPC")
-        ADD OPTION aRotina TITLE "Alterar"      ACTION "VIEWDEF.MIT" OPERATION 4 ACCESS 0
+        ADD OPTION aRotina TITLE "Alterar"      ACTION "VIEWDEF.MVC" OPERATION 4 ACCESS 0
     EndIf    
 
     // Apenas funcionarios podem excluir (suas próprias inclusões)
     If cUserName != GetMV("MZ_APRPC")
-        ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MIT" OPERATION 5 ACCESS 0
+        ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MVC" OPERATION 5 ACCESS 0
     EndIf
 
-    ADD OPTION aRotina TITLE "Imprimir"     ACTION "VIEWDEF.MIT" OPERATION 8 ACCESS 0
-    ADD OPTION aRotina TITLE "Copiar"       ACTION "VIEWDEF.MIT" OPERATION 9 ACCESS 0
+    ADD OPTION aRotina TITLE "Imprimir"     ACTION "VIEWDEF.MVC" OPERATION 8 ACCESS 0
+    ADD OPTION aRotina TITLE "Copiar"       ACTION "VIEWDEF.MVC" OPERATION 9 ACCESS 0
 
 Return aRotina
 
@@ -109,30 +109,16 @@ Static Function ViewDef()
 
 Return oView
 
-    // ExecAuto
 User Function ExeAu()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
     Private aExecA  := {}
 
     // Tratamento de erro do MsExecAuto
-    Private lMsErroAuto := .F.
-
-    // Variaveis com conteúdo dos campos que serão enviados para FINA050
-    
+    Private lMsErroAuto := .F.    
 
     // Colocamos em arrays o conteudo que será transferido
   //aAdd(array,  {campo que recebe  , conteudo a ser transferido })
-    // aAdd(aExecA, {"E2_NUM"          , })
-    // aAdd(aExecA, {"E2_TIPO"         , })
-    // aAdd(aExecA, {"E2_NATUREZ"      , })
-    // aAdd(aExecA, {"E2_FORNECE"      , })
-    // aAdd(aExecA, {"E2_LOJA"         , })
-    // aAdd(aExecA, {"E2_EMISSAO"      , })
-    // aAdd(aExecA, {"E2_VENCTO"       , })
-    // aAdd(aExecA, {"E2_VENCREA"      , })
-    // aAdd(aExecA, {"E2_VALOR"        , })
-    // aAdd(aExecA, {"E2_VLCRUZ"       , })
     aAdd(aExecA, {"B1_COD"      , "TESTE"})
     aAdd(aExecA, {"B1_DESC"     , "TESTE"})
     aAdd(aExecA, {"B1_TIPO"     , "ME"})
