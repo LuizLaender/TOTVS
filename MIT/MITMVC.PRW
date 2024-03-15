@@ -1,0 +1,277 @@
+#INCLUDE 'FWMVCDEF.CH'
+#include "totvs.ch"
+
+
+Static cTitulo := "Tela MIT"
+Static cAliasMVC := "ZB1"
+
+
+/*/-------------------------------------
+{Protheus.doc} User function MIT02
+Tela da MIT proposta pelas analistas
+@type user function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 2.0
+-------------------------------------/*/
+
+
+User Function MIT02()
+
+    Local aArea     := FWGetArea()
+    Local oBrowse
+    Private aRotina := {}
+
+    // // variaveis responsaveis pelo controle de usuario
+    // Private usrapr := .F.
+
+    // // verifica antes de abrir a tela se o usuário logado é aprovador
+    // If cUserName == GetMV("MZ_APRPC")
+    //     usrapr := .T.
+    //     FWAlertInfo("Usuario logado: Aprovador", "Status de login")
+    // ElseIf cUserName <> GetMV("MZ_APRPC")
+    //     FWAlertInfo("Usuário não é funcionário ou aprovador", "Status de login")
+    // Endif
+
+    aRotina := MenuDef()
+
+    oBrowse := FWMBrowse():New()
+    oBrowse:SetAlias(cAliasMVC)
+    oBrowse:SetDescription(cTitulo)
+    oBrowse:DisableDetails()
+
+    // Filtro responsável por mostrar apenas as PCs criadas pelo usuário logado
+    If cUserName != GetMV("MZ_APRPC")
+        oBrowse:SetFilterDefault("ZB1->ZB1_NOMES == cUserName")
+    EndIf
+
+    // Legenda representando o status atual de cada PC
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'O'", "WHITE" , "Em Aberto"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'E'", "GREEN" , "Efetivado"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'R'", "YELLOW", "Revisão"     )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'C'", "GRAY"  , "Cancelado"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'A'", "RED"   , "Aprovado"    )
+
+    oBrowse:Activate()
+
+    FWRestArea(aArea)
+
+Return
+
+
+Static Function MenuDef()
+
+    Local aRotina := {}
+
+    // Tela padrão:
+    ADD OPTION aRotina TITLE "Incluir"      ACTION "VIEWDEF.MITMVC" OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "Alterar"      ACTION "VIEWDEF.MITMVC" OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MITMVC" OPERATION 2 ACCESS 0
+
+    // Botão "Outras ações":
+    ADD OPTION aRotina TITLE "ExecTeste"    ACTION "U_ExecAut()"    OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr()"     OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
+    ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MITMVC" OPERATION 5 ACCESS 0
+    ADD OPTION aRotina TITLE "Relatorio"    ACTION "VIEWDEF.MITMVC" OPERATION 6 ACCESS 0
+
+Return aRotina
+
+
+Static Function ModelDef()
+
+    Local oModel
+    Local oStruct := FWFormStruct(1, cAliasMVC)
+
+    oModel := MPFormModel():New("MD_ZB1")
+    oModel:AddFields("MASTERZB1",, oStruct)
+    oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
+
+Return oModel
+
+
+Static Function ViewDef()
+
+    Local oModel := ModelDef()
+    Local oStruct := FWFormStruct(2, cAliasMVC)
+    Local oView
+
+    oView := FWFormView():New()
+    oView:SetModel(oModel)
+    oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
+    oView:CreateHorizontalBox("TELA" , 100 )
+    oView:SetOwnerView("VIEW_ZB1", "TELA")
+
+    oStruct:removeField("ZB1_LEGEND")
+
+Return oView
+
+
+// Função responsável por criar o botão "legenda" em "outras ações" da tela principal
+User Function ZB1Leg()
+
+    Local aLegenda := {}
+
+    aAdd(aLegenda, {'BR_BRANCO'     , 'Em Aberto'   })
+    aAdd(aLegenda, {'BR_VERDE'      , 'Efetivado'   })
+    aAdd(aLegenda, {'BR_AMARELO'    , 'Revisão'     })
+    aAdd(aLegenda, {'BR_CINZA'      , 'Cancelado'   })
+    aAdd(aLegenda, {'BR_VERMELHO'   , 'Aprovado'    })
+
+    BrwLegenda("Legenda", "", aLegenda)
+
+Return aLegenda
+
+
+// Função responsável por efetivar as PCs
+User Function ZB1Efe()
+
+    If cUsername == GetMV("MZ_APRPC")
+
+        FWAlertError("Apenas funcionarios podem efetivar prestações de compra.", "Acesso negado")
+        Return
+
+    ElseIf ZB1->ZB1_LEGEND == "E"
+
+        FWAlertError("Esta prestação já foi efetivada", "Erro")
+        Return
+
+    ElseIf ZB1->ZB1_LEGEND != "O"
+
+        FWAlertError("Apenas prestações EM ABERTO podem ser efetivadas.", "Erro")
+        Return
+
+    Else
+
+        ZB1->ZB1_LEGEND := "E"
+        FWAlertSuccess("Prestação de compra efetivada.", "Sucesso")
+
+    EndIf
+
+Return
+
+
+// Função responsável por aprovar as PCs
+User Function ZB1Apr()
+
+    If cUsername != GetMV("MZ_APRPC")
+
+        FWAlertError("Apenas usuários cadastrados no parâmetro MZ_APRPC podem aprovar prestações de compra.", "Acesso negado")
+        Return
+        
+    ElseIf ZB1->ZB1_LEGEND == "A"
+
+        FWAlertError("Esta prestação de contas já foi aprovada", "Erro")
+        Return
+
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FWAlertError("Apenas prestações efetivadas podem ser aprovadas.", "Erro")
+        Return
+
+    Else
+
+        ZB1->ZB1_LEGEND := "A"
+        FWAlertSuccess("Prestação de compra aprovada.", "Sucesso")
+
+        // ------------------------------
+        // ------------------------------
+        // ------------------------------ 
+        // ------------------------------
+        // ------------------------------
+
+    EndIf
+
+Return
+
+
+// Função responsável por cancelar as PCs
+User Function ZB1Can()
+
+    If cUsername != GetMV("MZ_APRPC")
+
+        FWAlertError("Apenas usuários cadastrados no parâmetro MZ_APRPC podem cancelar prestações de compra.", "Acesso negado")
+        Return
+
+    ElseIf ZB1->ZB1_LEGEND == "C"
+
+        FWAlertError("Esta prestação fá foi cancelada.", "Erro")
+        Return
+
+    ElseIf ZB1->ZB1_LEGEND == "A"
+
+        FWAlertYesNo("Título consta como APROVADO, ao cancelar essa solicitação o título gerado na rotina CONTAS A RECEBER também será cancelado. Deseja prosseguir?", "Atenção")
+        Return
+
+        // ------------------------------
+        // ------------------------------
+        // ------------------------------
+        // ------------------------------
+        // ------------------------------
+
+    ElseIf ZB1->ZB1_LEGEND == "B"
+
+        FWAlertError("Não é possível cancelar prestações que já foram baixadas.", "Erro")
+        Return
+
+    Else
+
+        ZB1->ZB1_LEGEND := "C"
+        FWAlertSuccess("Título cancelado com êxito.", "Sucesso")
+
+    EndIf
+
+Return
+
+
+User Function ExecAut()
+
+    // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
+    Private aTransf  := {}
+
+    // Tratamento de erro do MsExecAuto
+    Private lMsErroAuto := .F.
+
+    // Variáveis com conteúdo dos campos obrigatórios da rotina FINA050
+    Private cPrefix     := SuperGetMV('MS_PREFIX'   , .F., "TPC"        )
+    Private cNumTit     := ZB1->ZB1_COD
+    Private cTipo       := SuperGetMV('MS_TIPO'     , .F., "TF"         )
+    Private cNatu       := SuperGetMV('MS_NATURE'   , .F., "SAIDA"      )
+    Private cFornece    := SuperGetMV('MS_FORNEC'   , .F., "000001"     )
+    Private cLoja       := SuperGetMV('MS_LOJA'     , .F., "01"         )
+
+    // Alguns dos campos obrigatórios da rotina FINA050:
+    aAdd(aTransf, {"E2_PREFIXO"  , cPrefix          , NIL})
+    aAdd(aTransf, {"E2_NUM"      , cNumTit          , NIL})
+    aAdd(aTransf, {"E2_TIPO"     , cTipo            , NIL})
+    aAdd(aTransf, {"E2_NATUREZ"  , cNatu            , NIL})
+    aAdd(aTransf, {"E2_FORNECE"  , cFornece         , NIL})
+    aAdd(aTransf, {"E2_LOJA"     , cLoja            , NIL})
+    aAdd(aTransf, {"E2_EMISSAO"  , dDataBase        , NIL})
+
+    // Campos da MIT que o conteúdo será transferido para FINA050
+    aAdd(aTransf, {"E2_VENCTO"   , ZB1->ZB1_IDA     , NIL})
+    aAdd(aTransf, {"E2_VENCREA"  , ZB1->ZB1_VOLTA   , NIL})
+    aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
+    aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
+
+    Begin Transaction
+
+    MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 3)
+
+    If lMsErroAuto
+    
+        DisarmTransaction()
+        MostraErro()
+    
+    Else
+
+        FWAlertSuccess("Título incluído com êxito", "Sucesso")
+
+    EndIf
+
+    End Transaction
+
+Return
