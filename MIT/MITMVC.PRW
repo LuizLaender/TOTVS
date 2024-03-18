@@ -69,10 +69,9 @@ Static Function MenuDef()
     ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MITMVC" OPERATION 2 ACCESS 0
 
     // Botão "Outras ações":
-    ADD OPTION aRotina TITLE "ExecTeste"    ACTION "U_ExecAut()"    OPERATION 3 ACCESS 0
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
-    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr()"     OPERATION 4 ACCESS 0
-    ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr()"     OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
     ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MITMVC" OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Relatorio"    ACTION "VIEWDEF.MITMVC" OPERATION 6 ACCESS 0
@@ -153,80 +152,8 @@ User Function ZB1Efe()
 Return
 
 
-// Função responsável por aprovar as PCs
+// Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050
 User Function ZB1Apr()
-
-    If cUsername != GetMV("MZ_APRPC")
-
-        FWAlertError("Apenas usuários cadastrados no parâmetro MZ_APRPC podem aprovar prestações de compra.", "Acesso negado")
-        Return
-        
-    ElseIf ZB1->ZB1_LEGEND == "A"
-
-        FWAlertError("Esta prestação de contas já foi aprovada", "Erro")
-        Return
-
-    ElseIf ZB1->ZB1_LEGEND != "E"
-
-        FWAlertError("Apenas prestações efetivadas podem ser aprovadas.", "Erro")
-        Return
-
-    Else
-
-        ZB1->ZB1_LEGEND := "A"
-        FWAlertSuccess("Prestação de compra aprovada.", "Sucesso")
-
-        // ------------------------------
-        // ------------------------------
-        // ------------------------------ 
-        // ------------------------------
-        // ------------------------------
-
-    EndIf
-
-Return
-
-
-// Função responsável por cancelar as PCs
-User Function ZB1Can()
-
-    If cUsername != GetMV("MZ_APRPC")
-
-        FWAlertError("Apenas usuários cadastrados no parâmetro MZ_APRPC podem cancelar prestações de compra.", "Acesso negado")
-        Return
-
-    ElseIf ZB1->ZB1_LEGEND == "C"
-
-        FWAlertError("Esta prestação fá foi cancelada.", "Erro")
-        Return
-
-    ElseIf ZB1->ZB1_LEGEND == "A"
-
-        FWAlertYesNo("Título consta como APROVADO, ao cancelar essa solicitação o título gerado na rotina CONTAS A RECEBER também será cancelado. Deseja prosseguir?", "Atenção")
-        Return
-
-        // ------------------------------
-        // ------------------------------
-        // ------------------------------
-        // ------------------------------
-        // ------------------------------
-
-    ElseIf ZB1->ZB1_LEGEND == "B"
-
-        FWAlertError("Não é possível cancelar prestações que já foram baixadas.", "Erro")
-        Return
-
-    Else
-
-        ZB1->ZB1_LEGEND := "C"
-        FWAlertSuccess("Título cancelado com êxito.", "Sucesso")
-
-    EndIf
-
-Return
-
-
-User Function ExecAut()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
     Private aTransf  := {}
@@ -249,29 +176,119 @@ User Function ExecAut()
     aAdd(aTransf, {"E2_NATUREZ"  , cNatu            , NIL})
     aAdd(aTransf, {"E2_FORNECE"  , cFornece         , NIL})
     aAdd(aTransf, {"E2_LOJA"     , cLoja            , NIL})
-    aAdd(aTransf, {"E2_EMISSAO"  , dDataBase        , NIL})
+    aAdd(aTransf, {"E2_VENCTO"   , dDataBase        , NIL})
 
     // Campos da MIT que o conteúdo será transferido para FINA050
-    aAdd(aTransf, {"E2_VENCTO"   , ZB1->ZB1_IDA     , NIL})
+    aAdd(aTransf, {"E2_EMISSAO"  , ZB1->ZB1_IDA     , NIL})
     aAdd(aTransf, {"E2_VENCREA"  , ZB1->ZB1_VOLTA   , NIL})
     aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
     aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
 
-    Begin Transaction
+    // Verifica se usuario é aprovador e se pedido está efetivado para que possa ser aprovado, então o aprova.
+    If ZB1->ZB1_LEGEND == "E" .And. cUsername == GetMV("MZ_APRPC")
 
-    MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 3)
+        Begin Transaction
 
-    If lMsErroAuto
-    
-        DisarmTransaction()
-        MostraErro()
-    
-    Else
+        // Função padrão TOTVS responsável por transferir os dados de uma rotina para outra.
+        MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 3)
 
-        FWAlertSuccess("Título incluído com êxito", "Sucesso")
+        // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios foram preenchidos etc.
+        If lMsErroAuto
+        
+            DisarmTransaction()
+            MostraErro()
+        
+        Else
+
+            RecLock("ZB1")
+            ZB1->ZB1_LEGEND := "A"
+            ZB1->(msunlock())
+
+            FWAlertSuccess("Título aprovado com êxito", "Sucesso")
+
+        EndIf
+
+        End Transaction
+
+    ElseIf cUsername != GetMV("MZ_APRPC")
+
+        FwAlertError("Apenas aprovadores podem aprovar títulos.")
+
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FwAlertError("Apenas títulos efetivados podem ser aprovados.")
 
     EndIf
 
-    End Transaction
+Return
+
+
+// Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
+User Function ZB1Can()
+
+    // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem deletados
+    Private aTransf  := {}
+
+    // Tratamento de erro do MsExecAuto
+    Private lMsErroAuto := .F.
+
+    // Variáveis com conteúdo dos campos obrigatórios da rotina FINA050
+    Private cPrefix     := SuperGetMV('MS_PREFIX'   , .F., "TPC"        )
+    Private cNumTit     := ZB1->ZB1_COD
+    Private cTipo       := SuperGetMV('MS_TIPO'     , .F., "TF"         )
+    Private cNatu       := SuperGetMV('MS_NATURE'   , .F., "SAIDA"      )
+    Private cFornece    := SuperGetMV('MS_FORNEC'   , .F., "000001"     )
+    Private cLoja       := SuperGetMV('MS_LOJA'     , .F., "01"         )
+
+    // Alguns dos campos obrigatórios da rotina FINA050:
+    aAdd(aTransf, {"E2_PREFIXO"  , cPrefix          , NIL})
+    aAdd(aTransf, {"E2_NUM"      , cNumTit          , NIL})
+    aAdd(aTransf, {"E2_TIPO"     , cTipo            , NIL})
+    aAdd(aTransf, {"E2_NATUREZ"  , cNatu            , NIL})
+    aAdd(aTransf, {"E2_FORNECE"  , cFornece         , NIL})
+    aAdd(aTransf, {"E2_LOJA"     , cLoja            , NIL})
+    aAdd(aTransf, {"E2_VENCTO"   , dDataBase        , NIL})
+
+    // Campos da MIT que o conteúdo será deletado da FINA050
+    aAdd(aTransf, {"E2_EMISSAO"  , ZB1->ZB1_IDA     , NIL})
+    aAdd(aTransf, {"E2_VENCREA"  , ZB1->ZB1_VOLTA   , NIL})
+    aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
+    aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
+
+    // Verifica se usuario é aprovador e se pedido está aprovado para que possa ser cancelado, então o cancela.
+    If ZB1->ZB1_LEGEND == "A" .And. cUsername == GetMV("MZ_APRPC")
+
+        Begin Transaction
+
+        // Função padrão TOTVS responsável por transferir os dados de uma rotina para outra, neste caso os deleta.
+        MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 5)
+
+        // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios estão inclusos etc.
+        If lMsErroAuto
+        
+            DisarmTransaction()
+            MostraErro()
+        
+        Else
+
+            RecLock("ZB1")
+            ZB1->ZB1_LEGEND := "C"
+            ZB1->(msunlock())
+
+            FWAlertSuccess("Título cancelado com êxito", "Sucesso")
+
+        EndIf
+
+        End Transaction
+
+    ElseIf cUsername != GetMV("MZ_APRPC")
+
+        FwAlertError("Apenas aprovadores podem cancelar títulos.")
+
+    ElseIf ZB1->ZB1_LEGEND != "A"
+
+        FwAlertError("Apenas títulos aprovados podem ser cancelados.")
+
+    EndIf
 
 Return
