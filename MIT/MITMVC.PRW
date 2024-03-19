@@ -89,7 +89,7 @@ Static Function ModelDef()
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
 
     // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
-    oModel:SetVldActivate({|oModel| U_ZB1Alt()})
+    oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
 
 Return oModel
 
@@ -101,10 +101,8 @@ Static Function ViewDef()
     Local oView
 
     oView := FWFormView():New()
-    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    // oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    // oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    // oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr()})
+    oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
 
     oView:SetModel(oModel)
     oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
@@ -134,25 +132,33 @@ Return aLegenda
 
 
 // Função que verifica se o registro pode ou não ser alterado.
-User Function ZB1Alt()
+User Function ZB1Alt(oModel)
 
-    If ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES
+    If oModel:GetOperation() == 4
+
+        If ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES
+
+            Return .T.
+
+        ElseIf ZB1->ZB1_LEGEND != "O"
+
+            Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
+            Return .F.
+
+        ElseIf !(cUserName $ ZB1->ZB1_NOMES)
+
+            Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
+            Return .F.
+
+        EndIf
+
+    Else
 
         Return .T.
 
-    ElseIf ZB1->ZB1_LEGEND != "O"
-
-        Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
-        Return .F.
-
-    ElseIf !(cUserName $ ZB1->ZB1_NOMES)
-
-        Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
-        Return .F.
-
     EndIf
 
-Return .F.
+Return
 
 
 // Função responsável por efetivar as PCs
@@ -321,5 +327,12 @@ User Function ZB1Can()
         FwAlertError("Apenas títulos aprovados podem ser cancelados.")
 
     EndIf
+
+Return
+
+
+User Function ZB1Rev()
+
+
 
 Return
