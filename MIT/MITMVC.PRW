@@ -70,7 +70,7 @@ Static Function MenuDef()
 
     // Botão "Outras ações":
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
-    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr()"     OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "Aprovar"      ACTION "VIEWDEF.MITMVC" OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
     ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MITMVC" OPERATION 5 ACCESS 0
@@ -88,6 +88,9 @@ Static Function ModelDef()
     oModel:AddFields("MASTERZB1",, oStruct)
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
 
+    // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
+    oModel:SetVldActivate({|oModel| U_ZB1Alt()})
+
 Return oModel
 
 
@@ -98,11 +101,17 @@ Static Function ViewDef()
     Local oView
 
     oView := FWFormView():New()
+    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+
     oView:SetModel(oModel)
     oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
     oView:CreateHorizontalBox("TELA" , 100 )
     oView:SetOwnerView("VIEW_ZB1", "TELA")
 
+    // Oculta campo responsável pelo controle de status de cada registro: aberto, cancelado, efetivado, etc.
     oStruct:removeField("ZB1_LEGEND")
 
 Return oView
@@ -122,6 +131,28 @@ User Function ZB1Leg()
     BrwLegenda("Legenda", "", aLegenda)
 
 Return aLegenda
+
+
+// Função que verifica se o registro pode ou não ser alterado.
+User Function ZB1Alt()
+
+    If ZB1->ZB1_LEGEND == "O" .And. cUserName = ZB1->ZB1_NOMES
+
+        Return .T.
+
+    ElseIf ZB1->ZB1_LEGEND != "O"
+
+        Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
+        Return .F.
+
+    ElseIf cUserName != ZB1->ZB1_NOMES
+
+        Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
+        Return .F.
+
+    EndIf
+
+Return .F.
 
 
 // Função responsável por efetivar as PCs
