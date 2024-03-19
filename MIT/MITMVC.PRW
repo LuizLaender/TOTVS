@@ -102,9 +102,9 @@ Static Function ViewDef()
 
     oView := FWFormView():New()
     oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
-    oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    // oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    // oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
+    // oView:AddUserButton("BotaoTeste", "VIEW_ZB1", {|oView| U_ZB1Apr()}) //----------------------------
 
     oView:SetModel(oModel)
     oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
@@ -136,7 +136,7 @@ Return aLegenda
 // Função que verifica se o registro pode ou não ser alterado.
 User Function ZB1Alt()
 
-    If ZB1->ZB1_LEGEND == "O" .And. cUserName = ZB1->ZB1_NOMES
+    If ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES
 
         Return .T.
 
@@ -145,7 +145,7 @@ User Function ZB1Alt()
         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
         Return .F.
 
-    ElseIf cUserName != ZB1->ZB1_NOMES
+    ElseIf !(cUserName $ ZB1->ZB1_NOMES)
 
         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
         Return .F.
