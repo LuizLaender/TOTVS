@@ -108,6 +108,7 @@ Static Function ModelDef()
 
     // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
     // oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
+    // oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
 
 Return oModel
 
@@ -120,6 +121,7 @@ Static Function ViewDef()
 
     oView := FWFormView():New()
     oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr2()})
+    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr2()})
     oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
 
     oView:SetModel(oModel)
@@ -127,6 +129,9 @@ Static Function ViewDef()
     oView:CreateHorizontalBox("TELA" , 100 )
     oView:SetOwnerView("VIEW_ZB1", "TELA")
 
+    // Oculta campos responsáveis pelo funcionamento da tela.
+    oStruct:RemoveField("ZB1_LEGEND")
+    oStruct:RemoveField("ZB1_FLAG")
     // Oculta campos responsáveis pelo funcionamento da tela.
     oStruct:RemoveField("ZB1_LEGEND")
     oStruct:RemoveField("ZB1_FLAG")
@@ -154,27 +159,40 @@ Return aLegenda
 User Function ZB1Alt(oModel)
 
     // If oModel:GetOperation() == 4
+    // If oModel:GetOperation() == 4
 
+    //     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
     //     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
     //         Return .T.
+    //         Return .T.
 
+    //     ElseIf ZB1->ZB1_LEGEND != "O"
     //     ElseIf ZB1->ZB1_LEGEND != "O"
 
     //         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
     //         Return .F.
+    //         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
+    //         Return .F.
 
+    //     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
     //     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
 
     //         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
     //         Return .F.
+    //         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
+    //         Return .F.
 
+    //     EndIf
     //     EndIf
 
     // Else
+    // Else
 
     //     Return .T.
+    //     Return .T.
 
+    // EndIf
     // EndIf
 
 Return
@@ -185,6 +203,7 @@ User Function ZB1Efe()
 
     If cUsername == GetMV("MZ_APRPC")
 
+        FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
         FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
         Return
 
@@ -224,7 +243,9 @@ User Function ZB1Apr1(nOperation) //fazer ela virar o "tudo ok" (retorna true ou
         FWAlertError("Apenas aprovadores podem executar essa ação.", "Acesso negado")
 
     ElseIf !(ZB1->ZB1_LEGEND = "E")
+    ElseIf !(ZB1->ZB1_LEGEND = "E")
 
+        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
         FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
 
     EndIf
@@ -380,6 +401,28 @@ Return
     // Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
 User Function ZB1Rev()
 
+    // se operação for 0, habilita edição do camp obsAprov
+    // execauto para adicionar obsAprov ao registro
+
+    If !(cUserName $ GetMV("MZ_APRPC")) 
+    
+        FWAlertError("Apenas aprovadores podem pedir revisão de um registro.", "Acesso negado")
+        Return
+    
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FWAlertError("Apenas pedidos EM ABERTO podem ser revisados", "Erro")
+        Return
+
+    Else
+
+        RecLock("ZB1")
+        ZB1->ZB1_LEGEND := "A"
+        ZB1->(msunlock())
+
+        SX3_VISUAL := 1
+    
+    EndIf
     // se operação for 0, habilita edição do camp obsAprov
     // execauto para adicionar obsAprov ao registro
 
