@@ -108,7 +108,6 @@ Static Function ModelDef()
 
     // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
     // oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
-    // oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
 
 Return oModel
 
@@ -131,10 +130,6 @@ Static Function ViewDef()
 
     // Oculta campos responsáveis pelo funcionamento da tela.
     oStruct:RemoveField("ZB1_LEGEND")
-    oStruct:RemoveField("ZB1_FLAG")
-    // Oculta campos responsáveis pelo funcionamento da tela.
-    oStruct:RemoveField("ZB1_LEGEND")
-    oStruct:RemoveField("ZB1_FLAG")
 
 Return oView
 
