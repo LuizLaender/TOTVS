@@ -134,7 +134,7 @@ Static Function ViewDef()
 Return oView
 
 
-    // Função responsável por criar o botão "legenda" em "outras ações" da tela principal
+// Função responsável por criar o botão "legenda" em "outras ações" da tela principal
 User Function ZB1Leg()
 
     Local aLegenda := {}
@@ -150,55 +150,41 @@ User Function ZB1Leg()
 Return aLegenda
 
 
-    // Função que verifica se o registro pode ou não ser alterado.
+// Função que verifica se o registro pode ou não ser alterado.
 User Function ZB1Alt(oModel)
 
     // If oModel:GetOperation() == 4
-    // If oModel:GetOperation() == 4
 
-    //     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
     //     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
     //         Return .T.
-    //         Return .T.
 
-    //     ElseIf ZB1->ZB1_LEGEND != "O"
     //     ElseIf ZB1->ZB1_LEGEND != "O"
 
     //         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
     //         Return .F.
-    //         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
-    //         Return .F.
 
-    //     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
     //     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
 
     //         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
     //         Return .F.
-    //         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
-    //         Return .F.
 
-    //     EndIf
     //     EndIf
 
     // Else
-    // Else
 
     //     Return .T.
-    //     Return .T.
 
-    // EndIf
     // EndIf
 
 Return
 
 
-    // Função responsável por efetivar as PCs
+// Função responsável por efetivar as PCs
 User Function ZB1Efe()
 
     If cUsername == GetMV("MZ_APRPC")
 
-        FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
         FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
         Return
 
@@ -222,7 +208,7 @@ User Function ZB1Efe()
 Return
 
 
-    // Função responsável por abrir a rotina de aprovação.
+// Função responsável por abrir a rotina de aprovação.
 User Function ZB1Apr1(nOperation) //fazer ela virar o "tudo ok" (retorna true ou falso)
 
     If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E"
@@ -238,9 +224,7 @@ User Function ZB1Apr1(nOperation) //fazer ela virar o "tudo ok" (retorna true ou
         FWAlertError("Apenas aprovadores podem executar essa ação.", "Acesso negado")
 
     ElseIf !(ZB1->ZB1_LEGEND = "E")
-    ElseIf !(ZB1->ZB1_LEGEND = "E")
 
-        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
         FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
 
     EndIf
@@ -248,7 +232,7 @@ User Function ZB1Apr1(nOperation) //fazer ela virar o "tudo ok" (retorna true ou
 Return
 
 
-    // Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050.
+// Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050.
 User Function ZB1Apr2()
 
     FWAlertSuccess("função ZB1Apr2 funfano", "teste")
@@ -323,7 +307,7 @@ User Function ZB1Apr2()
 Return
 
 
-    // Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
+// Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
 User Function ZB1Can()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem deletados
@@ -393,7 +377,7 @@ User Function ZB1Can()
 
 Return
 
-    // Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
+// Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
 User Function ZB1Rev()
 
     // se operação for 0, habilita edição do camp obsAprov
