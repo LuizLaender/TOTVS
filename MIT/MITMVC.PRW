@@ -18,20 +18,12 @@ Tela da MIT proposta pelas analistas
 
 User Function MIT02()
 
-    Local aArea     := FWGetArea()
-    Local oBrowse
+    Local   aArea   := FWGetArea()
+    Local   oBrowse
+
+    Private lAprova := .F.
+
     Private aRotina := {}
-
-    // // variaveis responsaveis pelo controle de usuario
-    // Private usrapr := .F.
-
-    // // verifica antes de abrir a tela se o usuário logado é aprovador
-    // If cUserName == GetMV("MZ_APRPC")
-    //     usrapr := .T.
-    //     FWAlertInfo("Usuario logado: Aprovador", "Status de login")
-    // ElseIf cUserName <> GetMV("MZ_APRPC")
-    //     FWAlertInfo("Usuário não é funcionário ou aprovador", "Status de login")
-    // Endif
 
     aRotina := MenuDef()
 
@@ -70,7 +62,7 @@ Static Function MenuDef()
 
     // Botão "Outras ações":
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
-    ADD OPTION aRotina TITLE "Aprovar"      ACTION "VIEWDEF.MITMVC" OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr1(4)"   OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
     ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MITMVC" OPERATION 5 ACCESS 0
@@ -84,12 +76,38 @@ Static Function ModelDef()
     Local oModel
     Local oStruct := FWFormStruct(1, cAliasMVC)
 
+    // Condição para permitir ou não alteração de campos.
+    If lAprova == .T.
+
+        // O bloco {|| .T.}) PERMITE alteração. As estruturas a seguir serão ultilizadas em rotina de "APROVAÇÃO" pelo aprovador.
+        oStruct:SetProperty("ZB1_OBSAPR", MODEL_FIELD_WHEN, {|| .T.})
+
+        oStruct:SetProperty("ZB1_DEST"  , MODEL_FIELD_WHEN, {|| .F.})
+        oStruct:SetProperty("ZB1_CDEST" , MODEL_FIELD_WHEN, {|| .F.})
+        oStruct:SetProperty("ZB1_IDA"   , MODEL_FIELD_WHEN, {|| .F.})
+        oStruct:SetProperty("ZB1_VOLTA" , MODEL_FIELD_WHEN, {|| .F.})
+        oStruct:SetProperty("ZB1_OBS"   , MODEL_FIELD_WHEN, {|| .F.})
+
+    Else
+
+        // O bloco {|| .F.}) NAO permite alteração. As estruturas a seguir serão ultilizadas em rotina de "ALTERAÇÃO" pelo funcionário.
+        oStruct:SetProperty("ZB1_OBSAPR", MODEL_FIELD_WHEN, {|| .F.})
+
+        oStruct:SetProperty("ZB1_DEST"  , MODEL_FIELD_WHEN, {|| .T.})
+        oStruct:SetProperty("ZB1_CDEST" , MODEL_FIELD_WHEN, {|| .T.})
+        oStruct:SetProperty("ZB1_IDA"   , MODEL_FIELD_WHEN, {|| .T.})
+        oStruct:SetProperty("ZB1_VOLTA" , MODEL_FIELD_WHEN, {|| .T.})
+        oStruct:SetProperty("ZB1_OBS"   , MODEL_FIELD_WHEN, {|| .T.})
+
+
+    EndIf
+
     oModel := MPFormModel():New("MD_ZB1")
     oModel:AddFields("MASTERZB1",, oStruct)
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
 
     // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
-    oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
+    // oModel:SetVldActivate({|oModel|U_ZB1Alt(oModel)})
 
 Return oModel
 
@@ -101,7 +119,7 @@ Static Function ViewDef()
     Local oView
 
     oView := FWFormView():New()
-    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr()})
+    oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr2()})
     oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
 
     oView:SetModel(oModel)
@@ -109,13 +127,14 @@ Static Function ViewDef()
     oView:CreateHorizontalBox("TELA" , 100 )
     oView:SetOwnerView("VIEW_ZB1", "TELA")
 
-    // Oculta campo responsável pelo controle de status de cada registro: aberto, cancelado, efetivado, etc.
-    oStruct:removeField("ZB1_LEGEND")
+    // Oculta campos responsáveis pelo funcionamento da tela.
+    oStruct:RemoveField("ZB1_LEGEND")
+    oStruct:RemoveField("ZB1_FLAG")
 
 Return oView
 
 
-// Função responsável por criar o botão "legenda" em "outras ações" da tela principal
+    // Função responsável por criar o botão "legenda" em "outras ações" da tela principal
 User Function ZB1Leg()
 
     Local aLegenda := {}
@@ -131,42 +150,42 @@ User Function ZB1Leg()
 Return aLegenda
 
 
-// Função que verifica se o registro pode ou não ser alterado.
+    // Função que verifica se o registro pode ou não ser alterado.
 User Function ZB1Alt(oModel)
 
-    If oModel:GetOperation() == 4
+    // If oModel:GetOperation() == 4
 
-        If ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES
+    //     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
-            Return .T.
+    //         Return .T.
 
-        ElseIf ZB1->ZB1_LEGEND != "O"
+    //     ElseIf ZB1->ZB1_LEGEND != "O"
 
-            Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
-            Return .F.
+    //         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
+    //         Return .F.
 
-        ElseIf !(cUserName $ ZB1->ZB1_NOMES)
+    //     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
 
-            Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
-            Return .F.
+    //         Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
+    //         Return .F.
 
-        EndIf
+    //     EndIf
 
-    Else
+    // Else
 
-        Return .T.
+    //     Return .T.
 
-    EndIf
+    // EndIf
 
 Return
 
 
-// Função responsável por efetivar as PCs
+    // Função responsável por efetivar as PCs
 User Function ZB1Efe()
 
     If cUsername == GetMV("MZ_APRPC")
 
-        FWAlertError("Apenas funcionarios podem efetivar prestações de compra.", "Acesso negado")
+        FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
         Return
 
     ElseIf ZB1->ZB1_LEGEND == "E"
@@ -189,78 +208,106 @@ User Function ZB1Efe()
 Return
 
 
-// Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050
-User Function ZB1Apr()
+    // Função responsável por abrir a rotina de aprovação.
+User Function ZB1Apr1(nOperation) //fazer ela virar o "tudo ok" (retorna true ou falso)
 
-    // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
-    Private aTransf  := {}
+    If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E"
 
-    // Tratamento de erro do MsExecAuto
-    Private lMsErroAuto := .F.
+        // Variável de controle. Se for rotina de aprovação, recebe TRUE e permite visualização de certos campos (confira ModelDef).
+        lAprova := .T.
+        FWExecView("Aprovação", "VIEWDEF.MITMVC", nOperation, , { || .T. })
+        // Retorna variável a seu estado padrão depois de ter aberto a rotina com FWExecView.
+        lAprova := .F.
+    
+    ElseIf !(cUserName $ GetMV("MZ_APRPC"))
 
-    // Variáveis com conteúdo dos campos obrigatórios da rotina FINA050
-    Private cPrefix     := SuperGetMV('MS_PREFIX'   , .F., "TPC"        )
-    Private cNumTit     := ZB1->ZB1_COD
-    Private cTipo       := SuperGetMV('MS_TIPO'     , .F., "TF"         )
-    Private cNatu       := SuperGetMV('MS_NATURE'   , .F., "SAIDA"      )
-    Private cFornece    := SuperGetMV('MS_FORNEC'   , .F., "000001"     )
-    Private cLoja       := SuperGetMV('MS_LOJA'     , .F., "01"         )
+        FWAlertError("Apenas aprovadores podem executar essa ação.", "Acesso negado")
 
-    // Alguns dos campos obrigatórios da rotina FINA050:
-    aAdd(aTransf, {"E2_PREFIXO"  , cPrefix          , NIL})
-    aAdd(aTransf, {"E2_NUM"      , cNumTit          , NIL})
-    aAdd(aTransf, {"E2_TIPO"     , cTipo            , NIL})
-    aAdd(aTransf, {"E2_NATUREZ"  , cNatu            , NIL})
-    aAdd(aTransf, {"E2_FORNECE"  , cFornece         , NIL})
-    aAdd(aTransf, {"E2_LOJA"     , cLoja            , NIL})
-    aAdd(aTransf, {"E2_VENCTO"   , dDataBase        , NIL})
+    ElseIf !(ZB1->ZB1_LEGEND = "E")
 
-    // Campos da MIT que o conteúdo será transferido para FINA050
-    aAdd(aTransf, {"E2_EMISSAO"  , ZB1->ZB1_IDA     , NIL})
-    aAdd(aTransf, {"E2_VENCREA"  , ZB1->ZB1_VOLTA   , NIL})
-    aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
-    aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
-
-    // Verifica se usuario é aprovador e se pedido está efetivado para que possa ser aprovado, então o aprova.
-    If ZB1->ZB1_LEGEND == "E" .And. cUsername == GetMV("MZ_APRPC")
-
-        Begin Transaction
-
-        // Função padrão TOTVS responsável por transferir os dados de uma rotina para outra.
-        MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 3)
-
-        // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios foram preenchidos etc.
-        If lMsErroAuto
-        
-            DisarmTransaction()
-            MostraErro()
-        
-        Else
-
-            RecLock("ZB1")
-            ZB1->ZB1_LEGEND := "A"
-            ZB1->(msunlock())
-
-            FWAlertSuccess("Título aprovado com êxito", "Sucesso")
-
-        EndIf
-
-        End Transaction
-
-    ElseIf cUsername != GetMV("MZ_APRPC")
-
-        FwAlertError("Apenas aprovadores podem aprovar títulos.")
-
-    ElseIf ZB1->ZB1_LEGEND != "E"
-
-        FwAlertError("Apenas títulos efetivados podem ser aprovados.")
+        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
 
     EndIf
 
 Return
 
 
-// Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
+    // Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050.
+User Function ZB1Apr2()
+
+    FWAlertSuccess("função ZB1Apr2 funfano", "teste")
+
+
+    // // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
+    // Private aTransf  := {}
+
+    // // Tratamento de erro do MsExecAuto
+    // Private lMsErroAuto := .F.
+
+    // // Variáveis com conteúdo dos campos obrigatórios da rotina FINA050
+    // Private cPrefix     := SuperGetMV('MS_PREFIX'   , .F., "TPC"        )
+    // Private cNumTit     := ZB1->ZB1_COD
+    // Private cTipo       := SuperGetMV('MS_TIPO'     , .F., "TF"         )
+    // Private cNatu       := SuperGetMV('MS_NATURE'   , .F., "SAIDA"      )
+    // Private cFornece    := SuperGetMV('MS_FORNEC'   , .F., "000001"     )
+    // Private cLoja       := SuperGetMV('MS_LOJA'     , .F., "01"         )
+
+    // // Alguns dos campos obrigatórios da rotina FINA050:
+    // aAdd(aTransf, {"E2_PREFIXO"  , cPrefix          , NIL})
+    // aAdd(aTransf, {"E2_NUM"      , cNumTit          , NIL})
+    // aAdd(aTransf, {"E2_TIPO"     , cTipo            , NIL})
+    // aAdd(aTransf, {"E2_NATUREZ"  , cNatu            , NIL})
+    // aAdd(aTransf, {"E2_FORNECE"  , cFornece         , NIL})
+    // aAdd(aTransf, {"E2_LOJA"     , cLoja            , NIL})
+    // aAdd(aTransf, {"E2_EMISSAO"  , dDataBase        , NIL})
+
+    // // Campos da MIT que o conteúdo será transferido para FINA050
+    // aAdd(aTransf, {"E2_VENCTO"   , ZB1->ZB1_IDA     , NIL})
+    // aAdd(aTransf, {"E2_VENCREA"  , ZB1->ZB1_VOLTA   , NIL})
+    // aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
+    // aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
+
+    // // Verifica se usuario é aprovador e se pedido está efetivado para que possa ser aprovado, então o aprova.
+    // If ZB1->ZB1_LEGEND == "E" .And. cUsername == GetMV("MZ_APRPC")
+
+    //     Begin Transaction
+
+    //     // Função padrão TOTVS responsável por transferir os dados de uma rotina para outra.
+    //     MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 3)
+
+    //     // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios foram preenchidos etc.
+    //     If lMsErroAuto
+        
+    //         DisarmTransaction()
+    //         MostraErro()
+        
+    //     Else
+
+    //         RecLock("ZB1")
+    //         ZB1->ZB1_LEGEND := "A"
+    //         ZB1->(msunlock())
+
+    //         FWAlertSuccess("Título aprovado com êxito", "Sucesso")
+
+    //     EndIf
+
+    //     End Transaction
+
+    // ElseIf cUsername != GetMV("MZ_APRPC")
+
+    //     FwAlertError("Apenas aprovadores podem aprovar títulos.")
+
+    // ElseIf ZB1->ZB1_LEGEND != "E"
+
+    //     FwAlertError("Apenas títulos efetivados podem ser aprovados.")
+
+    // EndIf
+
+
+Return
+
+
+    // Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
 User Function ZB1Can()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem deletados
@@ -330,9 +377,30 @@ User Function ZB1Can()
 
 Return
 
-
+    // Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
 User Function ZB1Rev()
 
+    // se operação for 0, habilita edição do camp obsAprov
+    // execauto para adicionar obsAprov ao registro
 
+    If !(cUserName $ GetMV("MZ_APRPC")) 
+    
+        FWAlertError("Apenas aprovadores podem pedir revisão de um registro.", "Acesso negado")
+        Return
+    
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FWAlertError("Apenas pedidos EM ABERTO podem ser revisados", "Erro")
+        Return
+
+    Else
+
+        RecLock("ZB1")
+        ZB1->ZB1_LEGEND := "A"
+        ZB1->(msunlock())
+
+        SX3_VISUAL := 1
+    
+    EndIf
 
 Return
