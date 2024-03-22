@@ -64,7 +64,7 @@ Static Function MenuDef()
     ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr1(4)"   OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
-    ADD OPTION aRotina TITLE "Excluir"      ACTION "VIEWDEF.MITMVC" OPERATION 5 ACCESS 0
+    ADD OPTION aRotina TITLE "Excluir"      ACTION "U_ZB1Del(5)"    OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Relatorio"    ACTION "VIEWDEF.MITMVC" OPERATION 6 ACCESS 0
 
 Return aRotina
@@ -415,4 +415,31 @@ User Function ZB1Rev()
 
     FCLOSE()
     
+Return
+
+// Função responsável por deletar PCs.
+User Function ZB1Del(nOperation)
+
+    If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND == "O"
+
+        If MsgYesNo("Deseja excluir o título?", "Atenção")
+        
+            FWExecView("Excluir", "VIEWDEF.MITMVC", nOperation)
+        
+        Else
+        
+            Return
+        
+        EndIf
+    
+    ElseIf !(cUserName $ ZB1->ZB1_NOMES)
+        
+        FWAlertError("Apenas usuário que realizou a inclusão da prestação poderá excluir o registro", "Acesso negado!")
+    
+    ElseIf ZB1->ZB1_LEGEND != "O"
+    
+        FwAlertError("O status atual não permite a operação desejada", "Erro")
+    
+    EndIf
+
 Return
