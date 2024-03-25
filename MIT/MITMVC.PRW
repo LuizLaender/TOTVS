@@ -100,12 +100,9 @@ Static Function ModelDef()
 
     EndIf
 
-    oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao, {|oModel| U_TudoOk(oModel)}*/)
+    oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao*/, {|oModel| U_TudoOk(oModel)})
     oModel:AddFields("MASTERZB1",, oStruct)
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
-
-    // Recebe .T. ou .F. de U_ZB1Alt(). se .T. abre a tela de alteração, senão mostra erro.
-    // oModel:SetVldActivate({|oModel|U_ZB1Alt1(oModel)})
 
 Return oModel
 
@@ -131,34 +128,41 @@ Static Function ViewDef()
 Return oView
 
 
-// User Function TudoOk(oModel)
+User Function TudoOk(oModel)
 
-//     Local cQuery
-//     Local lRet      := .T.
+    Local cQuery
+    Local lRet      := .T.
 
-//     oModel:GetModel("MD_ZB1")
+    oModel:GetModel("MD_ZB1")
 
-//     cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
-//     cQuery += " AND ZB1_IDA     = '" + DtoS(M->ZB1_IDA)    + "' "
-//     cQuery += " AND ZB1_VOLTA   = '" + DtoS(M->ZB1_VOLTA)  + "' "
-//     cQuery += " AND ZB1_NOMES   = '" + cUserName           + "' "
+    // cQuery += " AND ZB1_IDA     = '" + DtoS(M->ZB1_IDA)    + "' "
+    // cQuery += " AND ZB1_VOLTA   = '" + DtoS(M->ZB1_VOLTA)  + "' "
+    // cQuery += " AND ZB1_NOMES   = '" + cUserName           + "' "
 
-//     If Select("QRY") > 0
+    cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
 
-//         QRY->(DbCloseArea())	    
+    cQuery += " AND     ZB1_IDA     BETWEEN '"    + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
+    cQuery += " OR      ZB1_VOLTA   BETWEEN '"    + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
+
+    cQuery += " OR '" + Dtos(M->ZB1_IDA)    + "'BETWEEN ZB1_IDA AND ZB1_VOLTA"
+    cQuery += " OR '" + Dtos(M->ZB1_VOLTA)  + "'BETWEEN ZB1_IDA AND ZB1_VOLTA"
+
+    If Select("QRY") > 0
+
+        QRY->(DbCloseArea())	    
     
-//     EndIf
+    EndIf
     
-//     TcQuery cQuery new alias 'QRY'
+    TcQuery cQuery new alias 'QRY'
 
-//     If QRY->(!EoF())
+    If QRY->(!EoF())
 
-//         Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
-//         lRet := .F.
+        Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
+        lRet := .F.
 
-//     EndIf
+    EndIf
 
-// Return lRet
+Return lRet
 
 
 // Função responsável por criar o botão "legenda" em "outras ações" da tela principal
