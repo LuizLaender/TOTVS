@@ -23,7 +23,6 @@ User Function MIT02()
     Local   oBrowse
 
     Private lAprova := .F.
-    Private lAltera := .F.
 
     Private aRotina := {}
 
@@ -101,7 +100,7 @@ Static Function ModelDef()
 
     EndIf
 
-    oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao*/, {|oModel| U_TudoOk(oModel)})
+    oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao, {|oModel| U_TudoOk(oModel)}*/)
     oModel:AddFields("MASTERZB1",, oStruct)
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
 
@@ -132,30 +131,34 @@ Static Function ViewDef()
 Return oView
 
 
-User Function TudoOk(oModel)
+// User Function TudoOk(oModel)
 
-    Local cQuery
-    Local lRet      := .T.
+//     Local cQuery
+//     Local lRet      := .T.
 
-    oModel:GetModel("MD_ZB1")
+//     oModel:GetModel("MD_ZB1")
 
-    cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
-    cQuery += " AND ZB1_IDA     = '" + Alltrim(DtoS(M->ZB1_IDA))    + "' "
-    cQuery += " AND ZB1_VOLTA   = '" + Alltrim(DtoS(M->ZB1_VOLTA))  + "' "
-    cQuery += " AND ZB1_NOMES   = '" + cUserName                    + "' "
+//     cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
+//     cQuery += " AND ZB1_IDA     = '" + DtoS(M->ZB1_IDA)    + "' "
+//     cQuery += " AND ZB1_VOLTA   = '" + DtoS(M->ZB1_VOLTA)  + "' "
+//     cQuery += " AND ZB1_NOMES   = '" + cUserName           + "' "
 
-    TcQuery cQuery new alias 'QRY'
+//     If Select("QRY") > 0
 
-    If Select("QRY") > 0
-	    
-        Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
-        lRet := .F.
+//         QRY->(DbCloseArea())	    
     
-    EndIf
+//     EndIf
+    
+//     TcQuery cQuery new alias 'QRY'
 
-    QRY->(DbCloseArea())
+//     If QRY->(!EoF())
 
-Return lRet
+//         Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
+//         lRet := .F.
+
+//     EndIf
+
+// Return lRet
 
 
 // Função responsável por criar o botão "legenda" em "outras ações" da tela principal
@@ -184,23 +187,15 @@ User Function ZB1Add()
 
     Else
 
-        FWExecView("Incluir", "VIEWDEF.MITMVC", 3, , { || .T. })
+        FWExecView("Incluir", "MITMVC", 3, , { || .T. })
 
     EndIf
 
 Return
 
 
-// Função responsável por incluir PC.
-// User Function ZB1Add2()
-
-//     //
-
-// Return
-
-
 // Função que verifica se o registro pode ou não ser alterado.
-User Function ZB1Alt1(oModel)
+User Function ZB1Alt1()
 
     If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
@@ -251,14 +246,16 @@ Return
 
 
 // Função responsável por abrir a rotina de aprovação.
-User Function ZB1Apr1() // - Jerry: fazer ela virar o "tudo ok" (retorna true ou falso)
+User Function ZB1Apr1()
+
+    Local aButtons :={{.F.,Nil},{.F.,Nil},{.F.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.F.,"Aprovar"},{.T.,"Cancelar"},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil}}
 
     If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E"
 
         lAprova := .T.
         
-        FWExecView("Aprovação", "MITMVC", 4, , { || .T. })
-        
+        FWExecView("Aprovação", "MITMVC", 4, , { || .T. },,,aButtons)
+
         lAprova := .F.
     
     ElseIf !(cUserName $ GetMV("MZ_APRPC"))
@@ -317,13 +314,17 @@ User Function ZB1Apr2()
         DisarmTransaction()
         MostraErro()
     
-    Else
+    ElseIf ZB1->ZB1_LEGEND = "E"
 
         RecLock("ZB1")
         ZB1->ZB1_LEGEND := "A"
         ZB1->(msunlock())
 
         FWAlertSuccess("Título aprovado com êxito", "Sucesso")
+
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
 
     EndIf
 
@@ -366,20 +367,6 @@ User Function ZB1Can()
 
     // Verifica se usuario é aprovador e se pedido está aprovado para que possa ser cancelado, então o cancela.
     If ZB1->ZB1_LEGEND == "A" .And. cUsername == GetMV("MZ_APRPC")
-
-        // cancelamento, msgyesno qnd pedido ja foi baixado '5 f ii'
-        // E2_SALDO = 0 TITULO BAIXADO NA FINA050
-        // SE2_NUM = CAMPO CODIGO IGUAL A ROTINA DA MIT
-
-        // If SE2->E2_SALDO = 0 .And. SE2->E2_NUM = ZB1->ZB1_COD
-        //     If MsgYesNo("Título consta em aberto, ao cancelar essa solicitação, o título gerado também será cancelado.", "Deseja prosseguir?")
-        //         cancela o pedido (execauto)
-        //         Return
-        //     Else
-        //         nao cancela o pedido
-        //         Return
-        //     EndIf
-        // EndIf
 
         If MsgYesNo("Título consta em aberto, ao cancelar essa solicitação, o título gerado também será cancelado.", "Deseja prosseguir?")
 
@@ -424,31 +411,36 @@ User Function ZB1Can()
 
 Return
 
+
 // Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
 User Function ZB1Rev()
 
-    // execauto para adicionar obsAprov ao registro
-    // - Jerry: se operação for 0, habilita edição do camp obsAprov
+    If ZB1->ZB1_LEGEND = "E"
 
-    RecLock("ZB1")
-    ZB1->ZB1_OBSAPR := M->ZB1_OBSAPR
-    ZB1->ZB1_LEGEND := "O"
-    ZB1->(msunlock())
+        RecLock("ZB1")
+        ZB1->ZB1_OBSAPR := M->ZB1_OBSAPR
+        ZB1->ZB1_LEGEND := "O"
+        ZB1->(msunlock())
 
-    FWAlertSuccess("Título em revisão", "Sucesso")
+        FWAlertSuccess("Título em revisão", "Sucesso")
 
-    FCLOSE()
+    ElseIf ZB1->ZB1_LEGEND != "E"
+
+        FWAlertError("Apenas pedidos efetivados podem entrar para revisão", "Erro")
+
+    EndIf
     
 Return
 
+
 // Função responsável por deletar PCs.
-User Function ZB1Del(nOperation)
+User Function ZB1Del()
 
     If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND == "O"
 
         If MsgYesNo("Deseja excluir o título?", "Atenção")
         
-            FWExecView("Excluir", "VIEWDEF.MITMVC", nOperation)
+            FWExecView("Excluir", "MITMVC", 5)
         
         Else
         
