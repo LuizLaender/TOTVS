@@ -1,5 +1,6 @@
-#INCLUDE 'FWMVCDEF.CH'
-#include "totvs.ch"
+#Include "FWMVCDef.ch"
+#Include "Totvs.ch"
+#Include "TopConn.ch"
 
 
 Static cTitulo := "Tela MIT"
@@ -56,15 +57,14 @@ Static Function MenuDef()
 
     Local aRotina := {}
 
-    // ADD OPTION aRotina TITLE "Incluir"      ACTION "U_ZB1Inc1(3)"    OPERATION 3 ACCESS 0
-    ADD OPTION aRotina TITLE "Incluir"      ACTION "VIEWDEF.MITMVC" OPERATION 3 ACCESS 0
-    // ADD OPTION aRotina TITLE "Alterar"      ACTION "U_ZB1Alt1(4)"    OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Incluir"      ACTION "U_ZB1Add()"     OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "Alterar"      ACTION "U_ZB1Alt1()"    OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MITMVC" OPERATION 2 ACCESS 0
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
-    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr1(4)"   OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr1()"    OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
-    ADD OPTION aRotina TITLE "Excluir"      ACTION "U_ZB1Del(5)"    OPERATION 5 ACCESS 0
+    ADD OPTION aRotina TITLE "Excluir"      ACTION "U_ZB1Del()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Relatorio"    ACTION "VIEWDEF.MITMVC" OPERATION 6 ACCESS 0
 
 Return aRotina
@@ -101,7 +101,7 @@ Static Function ModelDef()
 
     EndIf
 
-    oModel := MPFormModel():New("MD_ZB1")
+    oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao*/, {|oModel| U_TudoOk(oModel)})
     oModel:AddFields("MASTERZB1",, oStruct)
     oModel:SetPrimaryKey({'ZB1_FILIAL','ZB1_COD'})
 
@@ -132,6 +132,32 @@ Static Function ViewDef()
 Return oView
 
 
+User Function TudoOk(oModel)
+
+    Local cQuery
+    Local lRet      := .T.
+
+    oModel:GetModel("MD_ZB1")
+
+    cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
+    cQuery += " AND ZB1_IDA     = '" + Alltrim(DtoS(M->ZB1_IDA))    + "' "
+    cQuery += " AND ZB1_VOLTA   = '" + Alltrim(DtoS(M->ZB1_VOLTA))  + "' "
+    cQuery += " AND ZB1_NOMES   = '" + cUserName                    + "' "
+
+    TcQuery cQuery new alias 'QRY'
+
+    If Select("QRY") > 0
+	    
+        Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
+        lRet := .F.
+    
+    EndIf
+
+    QRY->(DbCloseArea())
+
+Return lRet
+
+
 // Função responsável por criar o botão "legenda" em "outras ações" da tela principal
 User Function ZB1Leg()
 
@@ -148,20 +174,25 @@ User Function ZB1Leg()
 Return aLegenda
 
 
-// Função responsável por verificar se pode ser feita inclusão.
-// User Function ZB1Inc1(nOperation)
+//Função responsável por verificar se pode ser feita inclusão.
+User Function ZB1Add()
 
-//     If cUsername $ GetMV("MZ_APRPC") .And. 
+    If cUsername $ GetMV("MZ_APRPC")
 
-//         FWExecView("Incluir", "VIEWDEF.MITMVC", nOperation, , { || .T. })
+        FWAlertError("Aprovadores não podem fazer inclusões.", "Acesso negado!")
+        Return
 
-//     EndIf
+    Else
 
-// Return
+        FWExecView("Incluir", "VIEWDEF.MITMVC", 3, , { || .T. })
+
+    EndIf
+
+Return
 
 
 // Função responsável por incluir PC.
-// User Function ZB1Inc2()
+// User Function ZB1Add2()
 
 //     //
 
@@ -169,33 +200,26 @@ Return aLegenda
 
 
 // Função que verifica se o registro pode ou não ser alterado.
-// User Function ZB1Alt1(oModel)
+User Function ZB1Alt1(oModel)
 
-//     If oModel:GetOperation() == 4
+    If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
-//         If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
+        FWExecView("Alteração", "MITMVC", 4, , { || .T. })
+        Return .T.
 
-//             Return .T.
+    ElseIf ZB1->ZB1_LEGEND != "O"
 
-//         ElseIf ZB1->ZB1_LEGEND != "O"
+        Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
+        Return .F.
 
-//             Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
-//             Return .F.
+    ElseIf !(cUserName $ ZB1->ZB1_NOMES)
 
-//         ElseIf !(cUserName $ ZB1->ZB1_NOMES)
+        Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
+        Return .F.
 
-//             Help(,,"Erro",,"Apenas o usuário que incluiu a prestação pode realizar modificações.", 1, 0,,,,,, {"Tente alterar uma prestação que você incluiu."})
-//             Return .F.
+    EndIf
 
-//         EndIf
-
-//     Else
-
-//         Return .T.
-
-//     EndIf
-
-// Return
+Return
 
 
 // Função responsável por efetivar as PCs
@@ -227,14 +251,14 @@ Return
 
 
 // Função responsável por abrir a rotina de aprovação.
-User Function ZB1Apr1(nOperation) // - Jerry: fazer ela virar o "tudo ok" (retorna true ou falso)
+User Function ZB1Apr1() // - Jerry: fazer ela virar o "tudo ok" (retorna true ou falso)
 
     If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E"
 
-        // Variável de controle. Se for rotina de aprovação, recebe TRUE e permite visualização de certos campos (confira ModelDef).
         lAprova := .T.
-        FWExecView("Aprovação", "VIEWDEF.MITMVC", nOperation, , { || .T. })
-        // Retorna variável a seu estado padrão depois de ter aberto a rotina com FWExecView.
+        
+        FWExecView("Aprovação", "MITMVC", 4, , { || .T. })
+        
         lAprova := .F.
     
     ElseIf !(cUserName $ GetMV("MZ_APRPC"))
