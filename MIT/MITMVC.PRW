@@ -139,13 +139,22 @@ User Function TudoOk(oModel)
     // cQuery += " AND ZB1_VOLTA   = '" + DtoS(M->ZB1_VOLTA)  + "' "
     // cQuery += " AND ZB1_NOMES   = '" + cUserName           + "' "
 
-    cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 WHERE D_E_L_E_T_ = '' "
 
-    cQuery += " AND     ZB1_IDA     BETWEEN '"    + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
-    cQuery += " OR      ZB1_VOLTA   BETWEEN '"    + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
 
-    cQuery += " OR '" + Dtos(M->ZB1_IDA)    + "'BETWEEN ZB1_IDA AND ZB1_VOLTA"
-    cQuery += " OR '" + Dtos(M->ZB1_VOLTA)  + "'BETWEEN ZB1_IDA AND ZB1_VOLTA"
+//     SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 
+// WHERE D_E_L_E_T_ = '' AND 'Administrador' = 'Administrador' AND ZB1_IDA BETWEEN '20240101' AND '20240620'  
+// OR  D_E_L_E_T_ = '' AND 'Administrador' = 'Administrador' AND ZB1_VOLTA BETWEEN '202400101' AND '20240620'
+
+
+
+
+    cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 "
+    cQuery += " WHERE   D_E_L_E_T_ = '' AND '" + ZB1->ZB1_NOMES  + "' = '" + cUserName + "' AND ZB1_IDA   BETWEEN '" + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
+    cQuery += " OR      D_E_L_E_T_ = '' AND '" + ZB1->ZB1_NOMES  + "' = '" + cUserName + "' AND ZB1_VOLTA BETWEEN '" + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
+
+
+    // cQuery += " AND Z12_CODSRA = '" + cMatLog + "'"
+
 
     If Select("QRY") > 0
 
@@ -157,7 +166,7 @@ User Function TudoOk(oModel)
 
     If QRY->(!EoF())
 
-        Help(NIL, NIL, "Erro", NIL, "DATA INVALIDA", 1, 0, NIL, NIL, NIL, NIL, NIL, {"Inclua um título com data diferente"})
+        Help(,, "Erro",, "DATA INVALIDA", 1, 0,,,,,, {"Inclua um título com data diferente"})
         lRet := .F.
 
     EndIf
