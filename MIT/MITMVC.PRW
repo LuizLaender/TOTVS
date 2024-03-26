@@ -39,11 +39,11 @@ User Function MIT02()
     EndIf
 
     // Legenda representando o status atual de cada PC
-    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'O'", "WHITE" , "Em Aberto"   )
-    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'E'", "GREEN" , "Efetivado"   )
-    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'R'", "YELLOW", "Revisão"     )
-    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'C'", "GRAY"  , "Cancelado"   )
-    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'A'", "RED"   , "Aprovado"    )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'EM ABERTO'   ", "WHITE"  , "EM ABERTO"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'EFETIVADO'   ", "GREEN"  , "EFETIVADO"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'REVISÃO  '   ", "YELLOW" , "REVISÃO"     )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'CANCELADO'   ", "GRAY"   , "CANCELADO"   )
+    oBrowse:AddLegend("ZB1->ZB1_LEGEND == 'APROVADO '   ", "RED"    , "APROVADO"    )
 
     oBrowse:Activate()
 
@@ -57,14 +57,14 @@ Static Function MenuDef()
     Local aRotina := {}
 
     ADD OPTION aRotina TITLE "Incluir"      ACTION "U_ZB1Add()"     OPERATION 3 ACCESS 0
-    ADD OPTION aRotina TITLE "Alterar"      ACTION "U_ZB1Alt1()"    OPERATION 4 ACCESS 0
+    ADD OPTION aRotina TITLE "Alterar"      ACTION "U_ZB1Alt()"     OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MITMVC" OPERATION 2 ACCESS 0
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Aprovar"      ACTION "U_ZB1Apr1()"    OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Cancelar"     ACTION "U_ZB1Can()"     OPERATION 5 ACCESS 0
     ADD OPTION aRotina TITLE "Legenda"      ACTION "U_ZB1Leg()"     OPERATION 6 ACCESS 0
     ADD OPTION aRotina TITLE "Excluir"      ACTION "U_ZB1Del()"     OPERATION 5 ACCESS 0
-    ADD OPTION aRotina TITLE "Relatorio"    ACTION "VIEWDEF.MITMVC" OPERATION 6 ACCESS 0
+    ADD OPTION aRotina TITLE "Relatorio"    ACTION "U_ZB1Rel()"     OPERATION 6 ACCESS 0
 
 Return aRotina
 
@@ -77,7 +77,7 @@ Static Function ModelDef()
     // Condição para permitir ou não alteração de campos.
     If lAprova == .T.
 
-        // O bloco {|| .T.}) PERMITE alteração. As estruturas a seguir serão ultilizadas em rotina de "APROVAÇÃO" pelo aprovador.
+        // O bloco {|| .T.}) PERMITE alteração. As estruturas a seguir serão ultilizadas em rotina de "APROVAÇÃO" pelo APROVADOr.
         oStruct:SetProperty("ZB1_OBSAPR", MODEL_FIELD_WHEN, {|| .T.})
 
         oStruct:SetProperty("ZB1_DEST"  , MODEL_FIELD_WHEN, {|| .F.})
@@ -115,7 +115,7 @@ Static Function ViewDef()
 
     oView := FWFormView():New()
     oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr2()})
-    oView:AddUserButton("Revisão"   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
+    oView:AddUserButton("REVISÃO  "   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
 
     oView:SetModel(oModel)
     oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
@@ -163,11 +163,11 @@ User Function ZB1Leg()
 
     Local aLegenda := {}
 
-    aAdd(aLegenda, {'BR_BRANCO'     , 'Em Aberto'   })
-    aAdd(aLegenda, {'BR_VERDE'      , 'Efetivado'   })
-    aAdd(aLegenda, {'BR_AMARELO'    , 'Revisão'     })
-    aAdd(aLegenda, {'BR_CINZA'      , 'Cancelado'   })
-    aAdd(aLegenda, {'BR_VERMELHO'   , 'Aprovado'    })
+    aAdd(aLegenda, {'BR_BRANCO'     , 'EM ABERTO'   })
+    aAdd(aLegenda, {'BR_VERDE'      , 'EFETIVADO'   })
+    aAdd(aLegenda, {'BR_AMARELO'    , 'REVISÃO  '   })
+    aAdd(aLegenda, {'BR_CINZA'      , 'CANCELADO'   })
+    aAdd(aLegenda, {'BR_VERMELHO'   , 'APROVADO '   })
 
     BrwLegenda("Legenda", "", aLegenda)
 
@@ -179,7 +179,7 @@ User Function ZB1Add()
 
     If cUsername $ GetMV("MZ_APRPC")
 
-        FWAlertError("Aprovadores não podem fazer inclusões.", "Acesso negado!")
+        FWAlertError("APROVADORES não podem fazer inclusões.", "Acesso negado!")
         Return
 
     Else
@@ -192,14 +192,14 @@ Return
 
 
 // Função que verifica se o registro pode ou não ser alterado.
-User Function ZB1Alt1()
+User Function ZB1Alt()
 
-    If (ZB1->ZB1_LEGEND = "O" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
+    If (ZB1->ZB1_LEGEND = "EM ABERTO" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
 
         FWExecView("Alteração", "MITMVC", 4, , { || .T. })
         Return .T.
 
-    ElseIf ZB1->ZB1_LEGEND != "O"
+    ElseIf ZB1->ZB1_LEGEND != "EM ABERTO"
 
         Help(,,"Erro",,"Esta solicitação não pode ser alterada, pois já está em processo de aprovação.", 1, 0,,,,,, {"Tente alterar uma prestação EM ABERTO"})
         Return .F.
@@ -219,22 +219,22 @@ User Function ZB1Efe()
 
     If cUsername == GetMV("MZ_APRPC")
 
-        FWAlertError("Aprovadores não podem efetivar prestações de compra.", "Acesso negado")
+        FWAlertError("APROVADORES não podem efetivar prestações de compra.", "Acesso negado")
         Return
 
-    ElseIf ZB1->ZB1_LEGEND == "E"
+    ElseIf ZB1->ZB1_LEGEND == "EFETIVADO"
 
         FWAlertError("Esta prestação já foi efetivada", "Erro")
         Return
 
-    ElseIf ZB1->ZB1_LEGEND != "O"
+    ElseIf ZB1->ZB1_LEGEND != "EM ABERTO"
 
         FWAlertError("Apenas prestações EM ABERTO podem ser efetivadas.", "Erro")
         Return
 
     Else
 
-        ZB1->ZB1_LEGEND := "E"
+        ZB1->ZB1_LEGEND := "EFETIVADO"
         FWAlertSuccess("Prestação de compra efetivada.", "Sucesso")
 
     EndIf
@@ -247,7 +247,7 @@ User Function ZB1Apr1()
 
     Local aButtons :={{.F.,Nil},{.F.,Nil},{.F.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.F.,"Aprovar"},{.T.,"Cancelar"},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil}}
 
-    If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E"
+    If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "EFETIVADO"
 
         lAprova := .T.
         
@@ -257,11 +257,11 @@ User Function ZB1Apr1()
     
     ElseIf !(cUserName $ GetMV("MZ_APRPC"))
 
-        FWAlertError("Apenas aprovadores podem executar essa ação.", "Acesso negado")
+        FWAlertError("Apenas APROVADORES podem executar essa ação.", "Acesso negado")
 
-    ElseIf !(ZB1->ZB1_LEGEND = "E")
+    ElseIf !(ZB1->ZB1_LEGEND = "EFETIVADO")
 
-        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
+        FWAlertError("Apenas pedidos EFETIVADOs podem ser APROVADOS", "Erro")
 
     EndIf
 
@@ -311,17 +311,17 @@ User Function ZB1Apr2()
         DisarmTransaction()
         MostraErro()
     
-    ElseIf ZB1->ZB1_LEGEND = "E"
+    ElseIf ZB1->ZB1_LEGEND = "EFETIVADO"
 
         RecLock("ZB1")
-        ZB1->ZB1_LEGEND := "A"
+        ZB1->ZB1_LEGEND := "APROVADO "
         ZB1->(msunlock())
 
-        FWAlertSuccess("Título aprovado com êxito", "Sucesso")
+        FWAlertSuccess("Título APROVADO com êxito", "Sucesso")
 
-    ElseIf ZB1->ZB1_LEGEND != "E"
+    ElseIf ZB1->ZB1_LEGEND != "EFETIVADO"
 
-        FWAlertError("Apenas pedidos efetivados podem ser aprovados", "Erro")
+        FWAlertError("Apenas pedidos EFETIVADOs podem ser APROVADOS", "Erro")
 
     EndIf
 
@@ -362,10 +362,10 @@ User Function ZB1Can()
     aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
     aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
 
-    // Verifica se usuario é aprovador e se pedido está aprovado para que possa ser cancelado, então o cancela.
-    If ZB1->ZB1_LEGEND == "A" .And. cUsername == GetMV("MZ_APRPC")
+    // Verifica se usuario é APROVADOr e se pedido está APROVADO para que possa ser CANCELADO, então o cancela.
+    If ZB1->ZB1_LEGEND = "APROVADO " .And. cUsername == GetMV("MZ_APRPC")
 
-        If MsgYesNo("Título consta em aberto, ao cancelar essa solicitação, o título gerado também será cancelado.", "Deseja prosseguir?")
+        If MsgYesNo("Título consta EM ABERTO, ao cancelar essa solicitação, o título gerado também será CANCELADO.", "Deseja prosseguir?")
 
             Begin Transaction
 
@@ -381,10 +381,10 @@ User Function ZB1Can()
             Else
 
                 RecLock("ZB1")
-                ZB1->ZB1_LEGEND := "C"
+                ZB1->ZB1_LEGEND := "CANCELADO"
                 ZB1->(msunlock())
 
-                FWAlertSuccess("Título cancelado com êxito", "Sucesso")
+                FWAlertSuccess("Título CANCELADO com êxito", "Sucesso")
 
             EndIf
 
@@ -398,32 +398,32 @@ User Function ZB1Can()
 
     ElseIf cUsername != GetMV("MZ_APRPC")
 
-        FwAlertError("Apenas aprovadores podem cancelar títulos.")
+        FwAlertError("Apenas APROVADORES podem cancelar títulos.")
 
-    ElseIf ZB1->ZB1_LEGEND != "A"
+    ElseIf ZB1->ZB1_LEGEND != "APROVADO "
 
-        FwAlertError("Apenas títulos aprovados podem ser cancelados.")
+        FwAlertError("Apenas títulos APROVADOS podem ser CANCELADOs.")
 
     EndIf
 
 Return
 
 
-// Função responsável por "Revisar" PCs = volta PC para estado "Em Aberto"
+// Função responsável por "Revisar" PCs = volta PC para estado "EM ABERTO"
 User Function ZB1Rev()
 
-    If ZB1->ZB1_LEGEND = "E"
+    If ZB1->ZB1_LEGEND = "EFETIVADO"
 
         RecLock("ZB1")
         ZB1->ZB1_OBSAPR := M->ZB1_OBSAPR
-        ZB1->ZB1_LEGEND := "O"
+        ZB1->ZB1_LEGEND := "REVISÃO  "
         ZB1->(msunlock())
 
-        FWAlertSuccess("Título em revisão", "Sucesso")
+        FWAlertSuccess("Título em REVISÃO", "Sucesso")
 
-    ElseIf ZB1->ZB1_LEGEND != "E"
+    ElseIf ZB1->ZB1_LEGEND != "EFETIVADO"
 
-        FWAlertError("Apenas pedidos efetivados podem entrar para revisão", "Erro")
+        FWAlertError("Apenas pedidos EFETIVADOs podem entrar para REVISÃO", "Erro")
 
     EndIf
     
@@ -433,7 +433,7 @@ Return
 // Função responsável por deletar PCs.
 User Function ZB1Del()
 
-    If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND == "O"
+    If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND = "EM ABERTO"
 
         If MsgYesNo("Deseja excluir o título?", "Atenção")
         
@@ -449,10 +449,70 @@ User Function ZB1Del()
         
         FWAlertError("Apenas usuário que realizou a inclusão da prestação poderá excluir o registro", "Acesso negado!")
     
-    ElseIf ZB1->ZB1_LEGEND != "O"
+    ElseIf ZB1->ZB1_LEGEND != "EM ABERTO"
     
         FwAlertError("O status atual não permite a operação desejada", "Erro")
     
     EndIf
+
+Return
+
+
+User Function ZB1Rel()
+
+    RpcSetEnv("99","01")
+
+    Public oReport
+    
+    RptStruc()
+
+    oReport:PrintDialog()
+
+    RpcClearEnv()
+
+Return
+
+
+Static Function RPrint(oReport)
+
+    Local oSection := oReport:Section(1)
+    
+    ZB1->(DBSeeK(cSeek := Xfilial("ZB1") + ZB1->ZB1_COD))
+    ZB1->(DBSetOrder(1))
+    ZB1->(DBGoTop())
+
+    While ZB1->(!EoF())
+
+        oSection:init()
+        oSection:PrintLine()
+        oSection:Finish()
+
+        ZB1->(DbSkip())
+        
+    EndDo
+
+    oReport:EndPage()
+
+Return
+
+
+Static Function RptStruc()
+
+    oReport := TReport():New("Relatório",,,{|oReport|RPrint(oReport)})
+
+    oSection := TRSection():New(oReport)
+        TRCell():New(oSection,"ZB1_COD"     , "ZB1","Cod prestação"     ,, 14)
+        TRCell():New(oSection,"ZB1_SOLIC"   , "ZB1","Cod solic"         ,, 11)
+        TRCell():New(oSection,"ZB1_NOMES"   , "ZB1","Nome solic"        ,, 13)
+        TRCell():New(oSection,"ZB1_ORIGEM"  , "ZB1","Estado origem"     ,, 14)
+        TRCell():New(oSection,"ZB1_DEST"    , "ZB1","Estado destino"    ,, 16)
+        TRCell():New(oSection,"ZB1_CDEST"   , "ZB1","Cidade destino"    ,, 16)
+        TRCell():New(oSection,"ZB1_IDA"     , "ZB1","Ida"               ,, 8)
+        TRCell():New(oSection,"ZB1_VOLTA"   , "ZB1","Volta"             ,, 8)
+        TRCell():New(oSection,"ZB1_DURACA"  , "ZB1","Duração"           ,, 7)
+        TRCell():New(oSection,"ZB1_VALOR"   , "ZB1","Valor"             ,, 5)
+        TRCell():New(oSection,"ZB1_CODAPR"  , "ZB1","Cod aprovador"     ,, 14)
+        TRCell():New(oSection,"ZB1_NOMAPR"  , "ZB1","Nome aprovador"    ,, 15)
+        TRCell():New(oSection,"ZB1_LEGEND"  , "ZB1","Status"            ,, 9)
 
 Return
