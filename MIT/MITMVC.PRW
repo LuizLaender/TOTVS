@@ -128,6 +128,7 @@ Static Function ViewDef()
 Return oView
 
 
+// Função chamada ao clicar em "confirmar". Confere se as datas são válidas
 User Function TudoOk(oModel)
 
     Local cQuery
@@ -135,26 +136,9 @@ User Function TudoOk(oModel)
 
     oModel:GetModel("MD_ZB1")
 
-    // cQuery += " AND ZB1_IDA     = '" + DtoS(M->ZB1_IDA)    + "' "
-    // cQuery += " AND ZB1_VOLTA   = '" + DtoS(M->ZB1_VOLTA)  + "' "
-    // cQuery += " AND ZB1_NOMES   = '" + cUserName           + "' "
-
-
-
-//     SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 
-// WHERE D_E_L_E_T_ = '' AND 'Administrador' = 'Administrador' AND ZB1_IDA BETWEEN '20240101' AND '20240620'  
-// OR  D_E_L_E_T_ = '' AND 'Administrador' = 'Administrador' AND ZB1_VOLTA BETWEEN '202400101' AND '20240620'
-
-
-
-
     cQuery := " SELECT ZB1_IDA, ZB1_VOLTA, ZB1_NOMES FROM ZB1990 "
     cQuery += " WHERE   D_E_L_E_T_ = '' AND '" + ZB1->ZB1_NOMES  + "' = '" + cUserName + "' AND ZB1_IDA   BETWEEN '" + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
     cQuery += " OR      D_E_L_E_T_ = '' AND '" + ZB1->ZB1_NOMES  + "' = '" + cUserName + "' AND ZB1_VOLTA BETWEEN '" + Dtos(M->ZB1_IDA) + "' AND '" + Dtos(M->ZB1_VOLTA) + "' "
-
-
-    // cQuery += " AND Z12_CODSRA = '" + cMatLog + "'"
-
 
     If Select("QRY") > 0
 
