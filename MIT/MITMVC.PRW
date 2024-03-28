@@ -23,7 +23,6 @@ User Function MIT02()
     Local   oBrowse
 
     Private lAprova := .F.
-
     Private aRotina := {}
 
     aRotina := MenuDef()
@@ -460,15 +459,12 @@ Return
 
 User Function ZB1Rel()
 
-    RpcSetEnv("99","01")
+    Private cPerg	:= "ZB1MIT"
+    Public  oReport
 
-    Public oReport
-    
     RptStruc()
 
     oReport:PrintDialog()
-
-    RpcClearEnv()
 
 Return
 
@@ -498,21 +494,21 @@ Return
 
 Static Function RptStruc()
 
-    oReport := TReport():New("Relatório",,,{|oReport|RPrint(oReport)})
+    oReport := TReport():New("Relatório",, cPerg,{|oReport|RPrint(oReport)})
 
     oSection := TRSection():New(oReport)
         TRCell():New(oSection,"ZB1_COD"     , "ZB1","Cod prestação"     ,, 14)
         TRCell():New(oSection,"ZB1_SOLIC"   , "ZB1","Cod solic"         ,, 11)
         TRCell():New(oSection,"ZB1_NOMES"   , "ZB1","Nome solic"        ,, 13)
-        TRCell():New(oSection,"ZB1_ORIGEM"  , "ZB1","Estado origem"     ,, 14)
-        TRCell():New(oSection,"ZB1_DEST"    , "ZB1","Estado destino"    ,, 16)
-        TRCell():New(oSection,"ZB1_CDEST"   , "ZB1","Cidade destino"    ,, 16)
-        TRCell():New(oSection,"ZB1_IDA"     , "ZB1","Ida"               ,, 8)
-        TRCell():New(oSection,"ZB1_VOLTA"   , "ZB1","Volta"             ,, 8)
-        TRCell():New(oSection,"ZB1_DURACA"  , "ZB1","Duração"           ,, 7)
-        TRCell():New(oSection,"ZB1_VALOR"   , "ZB1","Valor"             ,, 5)
-        TRCell():New(oSection,"ZB1_CODAPR"  , "ZB1","Cod aprovador"     ,, 14)
-        TRCell():New(oSection,"ZB1_NOMAPR"  , "ZB1","Nome aprovador"    ,, 15)
+        // TRCell():New(oSection,"ZB1_ORIGEM"  , "ZB1","Estado origem"     ,, 14)
+        // TRCell():New(oSection,"ZB1_DEST"    , "ZB1","Estado destino"    ,, 16)
+        // TRCell():New(oSection,"ZB1_CDEST"   , "ZB1","Cidade destino"    ,, 16)
+        // TRCell():New(oSection,"ZB1_IDA"     , "ZB1","Ida"               ,, 8)
+        // TRCell():New(oSection,"ZB1_VOLTA"   , "ZB1","Volta"             ,, 8)
+        // TRCell():New(oSection,"ZB1_DURACA"  , "ZB1","Duração"           ,, 7)
+        // TRCell():New(oSection,"ZB1_VALOR"   , "ZB1","Valor"             ,, 5)
+        // TRCell():New(oSection,"ZB1_CODAPR"  , "ZB1","Cod aprovador"     ,, 14)
+        // TRCell():New(oSection,"ZB1_NOMAPR"  , "ZB1","Nome aprovador"    ,, 15)
         TRCell():New(oSection,"ZB1_LEGEND"  , "ZB1","Status"            ,, 9)
-
+        
 Return
