@@ -460,24 +460,23 @@ Return
 // Função responsável pelo relatório
 User Function ZB1Rel()
 
-    Local oReport
+	private oReport	    := NIL
+	private oSection	:= NIL
+	private cPerg		:= "ZB1MIT"
+	Private cAlias      := GetNextAlias()
 
-    ReportDef()
+	ReportDef()
 
-    oReport:PrintDialog()
+	oReport:PrintDialog()
 
 Return
 
 
 Static Function ReportDef()
 
-    Local cAlias := GetNextAlias()
+    oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
 
-    Local oSection
-
-    oReport := TReport():New("Relatório",,"ZB1MIT",{|oReport|PrintReport(oReport)})
-
-    oSection := TRSection():New(oReport)
+    oSection := TRSection():New(oReport,,{"ZB1","SE2"})
         TRCell():New(oSection,"ZB1_COD"     , cAlias,"Cod prestação"     ,, 14)
         TRCell():New(oSection,"ZB1_SOLIC"   , cAlias,"Cod solic"         ,, 11)
         TRCell():New(oSection,"ZB1_NOMES"   , cAlias,"Nome solic"        ,, 13)
@@ -497,15 +496,14 @@ Return
 
 Static Function PrintReport(oReport)
 
-    // Local oSection := oReport:Section(1)
+    Local oSection := oReport:Section(1)
 
-    // SE2->(DBGoTop())
-    // ZB1->(DBGoTop())
+    SE2->(DBGoTop())
+    ZB1->(DBGoTop())
 
     oSection:BeginQuery()
 
     BeginSQL alias cAlias
-
         SELECT ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_COD, ZB1_IDA, ZB1_VOLTA
             FROM %table:ZB1% ZB1, %table:SE2% SE2
             WHERE ZB1.D_E_L_E_T_ = " "
@@ -515,9 +513,6 @@ Static Function PrintReport(oReport)
                 AND ZB1_VOLTA   <= %exp:MV_PAR08%
                 AND ZB1_ORIGEM  =  %exp:MV_PAR03%
                 AND ZB1_DEST    =  %exp:MV_PAR04%
-
-                // Caso usuario escolha opção de "Todos cadastros", mostra tds registros com ZB1_LEGEND diferente de "Aprovado",
-                // senão, seleciona apenas cadastros com legenda "Aprovado":
                 AND ZB1_LEGEND IN (
                     CASE
                         WHEN %exp:MV_PAR09% = "Todos cadastros"
@@ -525,21 +520,18 @@ Static Function PrintReport(oReport)
                             ELSE ( SELECT ZB1_LEGEND FROM %table:ZB1% ZB1
                                 WHERE ZB1_LEGEND = "Aprovado" )
                     END )
-
                 AND E2_BAIXA IN (
                     CASE
                         WHEN %exp:MV_PAR10% = "NAO" THEN ""
-                        ELSE ( SELECT E2_BAIXA FROM %table:SE2% SE2 AND ZB1_COD FROM %table:ZB1% ZB1
-                            WHERE E2_BAIXA = ZB1_COD )
+                        ELSE ( SELECT E2_BAIXA FROM %table:SE2% SE2 )
                     END
                 )
-
-        -- ORDER BY ZB1_COD
-
+        ORDER BY ZB1_COD
     EndSQL
 
     oSection:EndQuery()
-    oSection:Print()
+    oSection:PrintLine()
     (cAlias)->(DbCloseArea())
 
 Return
+
