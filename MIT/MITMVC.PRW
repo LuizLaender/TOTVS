@@ -141,10 +141,10 @@ User Function TudoOk(oModel)
 
     If Select("QRY") > 0
 
-        QRY->(DbCloseArea())	    
-    
+        QRY->(DbCloseArea())
+
     EndIf
-    
+
     TcQuery cQuery new alias 'QRY'
 
     If QRY->(!EoF())
@@ -457,58 +457,89 @@ User Function ZB1Del()
 Return
 
 
+// Função responsável pelo relatório
 User Function ZB1Rel()
 
-    Private cPerg	:= "ZB1MIT"
-    Public  oReport
+    Local oReport
 
-    RptStruc()
+    ReportDef()
 
     oReport:PrintDialog()
 
 Return
 
 
-Static Function RPrint(oReport)
+Static Function ReportDef()
 
-    Local oSection := oReport:Section(1)
-    
-    ZB1->(DBSeeK(cSeek := Xfilial("ZB1") + ZB1->ZB1_COD))
-    ZB1->(DBSetOrder(1))
-    ZB1->(DBGoTop())
+    Local cAlias := GetNextAlias()
 
-    While ZB1->(!EoF())
+    Local oSection
 
-        oSection:init()
-        oSection:PrintLine()
-        oSection:Finish()
+    oReport := TReport():New("Relatório",,"ZB1MIT",{|oReport|PrintReport(oReport)})
 
-        ZB1->(DbSkip())
-        
-    EndDo
-
-    oReport:EndPage()
+    oSection := TRSection():New(oReport)
+        TRCell():New(oSection,"ZB1_COD"     , cAlias,"Cod prestação"     ,, 14)
+        TRCell():New(oSection,"ZB1_SOLIC"   , cAlias,"Cod solic"         ,, 11)
+        TRCell():New(oSection,"ZB1_NOMES"   , cAlias,"Nome solic"        ,, 13)
+        TRCell():New(oSection,"ZB1_ORIGEM"  , cAlias,"Estado origem"     ,, 14)
+        TRCell():New(oSection,"ZB1_DEST"    , cAlias,"Estado destino"    ,, 16)
+        // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
+        TRCell():New(oSection,"ZB1_IDA"     , cAlias,"Ida"               ,, 8)
+        TRCell():New(oSection,"ZB1_VOLTA"   , cAlias,"Volta"             ,, 8)
+        // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
+        // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
+        // TRCell():New(oSection,"ZB1_CODAPR"  , cAlias,"Cod aprovador"     ,, 14)
+        // TRCell():New(oSection,"ZB1_NOMAPR"  , cAlias,"Nome aprovador"    ,, 15)
+        // TRCell():New(oSection,"ZB1_LEGEND"  , cAlias,"Status"            ,, 9)
 
 Return
 
 
-Static Function RptStruc()
+Static Function PrintReport(oReport)
 
-    oReport := TReport():New("Relatório",, cPerg,{|oReport|RPrint(oReport)})
+    // Local oSection := oReport:Section(1)
 
-    oSection := TRSection():New(oReport)
-        TRCell():New(oSection,"ZB1_COD"     , "ZB1","Cod prestação"     ,, 14)
-        TRCell():New(oSection,"ZB1_SOLIC"   , "ZB1","Cod solic"         ,, 11)
-        TRCell():New(oSection,"ZB1_NOMES"   , "ZB1","Nome solic"        ,, 13)
-        // TRCell():New(oSection,"ZB1_ORIGEM"  , "ZB1","Estado origem"     ,, 14)
-        // TRCell():New(oSection,"ZB1_DEST"    , "ZB1","Estado destino"    ,, 16)
-        // TRCell():New(oSection,"ZB1_CDEST"   , "ZB1","Cidade destino"    ,, 16)
-        // TRCell():New(oSection,"ZB1_IDA"     , "ZB1","Ida"               ,, 8)
-        // TRCell():New(oSection,"ZB1_VOLTA"   , "ZB1","Volta"             ,, 8)
-        // TRCell():New(oSection,"ZB1_DURACA"  , "ZB1","Duração"           ,, 7)
-        // TRCell():New(oSection,"ZB1_VALOR"   , "ZB1","Valor"             ,, 5)
-        // TRCell():New(oSection,"ZB1_CODAPR"  , "ZB1","Cod aprovador"     ,, 14)
-        // TRCell():New(oSection,"ZB1_NOMAPR"  , "ZB1","Nome aprovador"    ,, 15)
-        TRCell():New(oSection,"ZB1_LEGEND"  , "ZB1","Status"            ,, 9)
-        
+    // SE2->(DBGoTop())
+    // ZB1->(DBGoTop())
+
+    oSection:BeginQuery()
+
+    BeginSQL alias cAlias
+
+        SELECT ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_COD, ZB1_IDA, ZB1_VOLTA
+            FROM %table:ZB1% ZB1, %table:SE2% SE2
+            WHERE ZB1.D_E_L_E_T_ = " "
+                AND ZB1_COD     BETWEEN %exp:MV_PAR05% AND %exp:MV_PAR06%
+                AND ZB1_SOLIC   BETWEEN %exp:MV_PAR01% AND %exp:MV_PAR02%
+                AND ZB1_IDA     >= %exp:MV_PAR07%
+                AND ZB1_VOLTA   <= %exp:MV_PAR08%
+                AND ZB1_ORIGEM  =  %exp:MV_PAR03%
+                AND ZB1_DEST    =  %exp:MV_PAR04%
+
+                // Caso usuario escolha opção de "Todos cadastros", mostra tds registros com ZB1_LEGEND diferente de "Aprovado",
+                // senão, seleciona apenas cadastros com legenda "Aprovado":
+                AND ZB1_LEGEND IN (
+                    CASE
+                        WHEN %exp:MV_PAR09% = "Todos cadastros"
+                            THEN ( SELECT ZB1_LEGEND FROM %table:ZB1% ZB1 )
+                            ELSE ( SELECT ZB1_LEGEND FROM %table:ZB1% ZB1
+                                WHERE ZB1_LEGEND = "Aprovado" )
+                    END )
+
+                AND E2_BAIXA IN (
+                    CASE
+                        WHEN %exp:MV_PAR10% = "NAO" THEN ""
+                        ELSE ( SELECT E2_BAIXA FROM %table:SE2% SE2 AND ZB1_COD FROM %table:ZB1% ZB1
+                            WHERE E2_BAIXA = ZB1_COD )
+                    END
+                )
+
+        -- ORDER BY ZB1_COD
+
+    EndSQL
+
+    oSection:EndQuery()
+    oSection:Print()
+    (cAlias)->(DbCloseArea())
+
 Return
