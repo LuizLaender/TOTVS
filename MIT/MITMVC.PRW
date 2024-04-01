@@ -459,31 +459,28 @@ Return
 // Função responsável pelo relatório
 User Function ZB1Rel()
 
-	private oReport	    := NIL
-	private oSection	:= NIL
-	private cPerg		:= "ZB1MIT"
+	Private oReport	    := NIL
+	Private oSection	:= NIL
+	Private cPerg		:= "ZB1MIT"
 	Private cAlias      := GetNextAlias()
 
 	oReport := ReportDef()
-
 	oReport:PrintDialog()
 
 Return
 
 
-Static Function ReportDef()
+Static Function ReportDef(QRY)
 
     oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
+    oSection := TRSection():New(oReport,,QRY)
 
-    oSection := TRSection():New(oReport,,{"ZB1","SE2"})
-    TRCell():New(oSection,"ZB1_COD"     , cAlias,"Cod prestação"     ,, 14)
-    TRCell():New(oSection,"ZB1_SOLIC"   , cAlias,"Cod solic"         ,, 11)
-    TRCell():New(oSection,"ZB1_NOMES"   , cAlias,"Nome solic"        ,, 13)
-    TRCell():New(oSection,"ZB1_ORIGEM"  , cAlias,"Estado origem"     ,, 14)
-    TRCell():New(oSection,"ZB1_DEST"    , cAlias,"Estado destino"    ,, 16)
+    TRCell():New(oSection,"ZB1_COD"     , QRY,"Cod prestação"     ,, 14)
+    TRCell():New(oSection,"ZB1_SOLIC"   , QRY,"Cod solic"         ,, 11)
+    TRCell():New(oSection,"ZB1_NOMES"   , QRY,"Nome solic"        ,, 13)
+    TRCell():New(oSection,"ZB1_ORIGEM"  , QRY,"Estado origem"     ,, 14)
+    TRCell():New(oSection,"ZB1_DEST"    , QRY,"Estado destino"    ,, 16)
     // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
-    TRCell():New(oSection,"ZB1_IDA"     , cAlias,"Ida"               ,, 8)
-    TRCell():New(oSection,"ZB1_VOLTA"   , cAlias,"Volta"             ,, 8)
     // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
     // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
     // TRCell():New(oSection,"ZB1_CODAPR"  , cAlias,"Cod aprovador"     ,, 14)
@@ -496,23 +493,20 @@ Return (oReport)
 Static Function PrintReport(oReport)
 
     Local oSection := oReport:Section(1)
-    Local cQuery := NIL
-
-    SE2->(DBGoTop())
-    ZB1->(DBGoTop())
+    Local cQuery
 
     oSection:BeginQuery()
 
-    cQuery :=   " SELECT ZB1_COD, ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_IDA, ZB1_VOLTA, E2_BAIXA "
-    cQuery +=   "    FROM ZB1990 "
-    cQuery +=   "    LEFT JOIN SE2990 ON ZB1_COD = E2_NUM "
-    cQuery +=   "    WHERE ZB1990.D_E_L_E_T_ = '' "
-    // cQuery +=   "        AND ZB1_COD     BETWEEN '" + MV_PAR05 + "' AND '" + MV_PAR06 + "' "
-    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" + MV_PAR01 + "' AND '" + MV_PAR02 + "' "
-    cQuery +=   "        AND ZB1_IDA     >=      '" + Dtos(MV_PAR07) + "'                  "
-    cQuery +=   "        AND ZB1_VOLTA   <=      '" + Dtos(MV_PAR08) + "'                  "
-    cQuery +=   "        AND ZB1_ORIGEM  =       '" + MV_PAR03 + "'                        "
-    cQuery +=   "        AND ZB1_DEST    =       '" + MV_PAR04 + "'                        "
+    cQuery :=   " SELECT ZB1_COD, ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_IDA, ZB1_VOLTA, E2_BAIXA  "
+    cQuery +=   "    FROM ZB1990                                                                            "
+    cQuery +=   "    LEFT JOIN SE2990 ON ZB1_COD = E2_NUM                                                   "
+    cQuery +=   "    WHERE ZB1990.D_E_L_E_T_ = ''                                                           "
+    cQuery +=   "        AND ZB1_COD     BETWEEN '" +      MV_PAR05 +   "' AND '" + MV_PAR06 + "'           "
+    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" +      MV_PAR01 +   "' AND '" + MV_PAR02 + "'           "
+    cQuery +=   "        AND ZB1_IDA     >=      '" + Dtos(MV_PAR07) +  "'                                  "
+    cQuery +=   "        AND ZB1_VOLTA   <=      '" + Dtos(MV_PAR08) +  "'                                  "
+    cQuery +=   "        AND ZB1_ORIGEM  =       '" +      MV_PAR03 +   "'                                  "
+    cQuery +=   "        AND ZB1_DEST    =       '" +      MV_PAR04 +   "'                                  "
 
     // If %exp:MV_PAR09% = 'Todos cadastros'
     //     cQuery +=   "        AND ZB1_LEGEND	= 'Aprovado' "
@@ -524,12 +518,7 @@ Static Function PrintReport(oReport)
 
     TcQuery cQuery new alias 'QRY'
 
-
-    // EndSQL
-
     oSection:EndQuery()
     oSection:PrintLine()
-    DbCloseArea()
 
 Return
-
