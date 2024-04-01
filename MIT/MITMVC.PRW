@@ -96,7 +96,6 @@ Static Function ModelDef()
         oStruct:SetProperty("ZB1_VOLTA" , MODEL_FIELD_WHEN, {|| .T.})
         oStruct:SetProperty("ZB1_OBS"   , MODEL_FIELD_WHEN, {|| .T.})
 
-
     EndIf
 
     oModel := MPFormModel():New("MD_ZB1", /*bPreValidacao*/, {|oModel| U_TudoOk(oModel)})
@@ -249,11 +248,11 @@ User Function ZB1Apr1()
     If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "EFETIVADO"
 
         lAprova := .T.
-        
+
         FWExecView("Aprovação", "MITMVC", 4, , { || .T. },,,aButtons)
 
         lAprova := .F.
-    
+
     ElseIf !(cUserName $ GetMV("MZ_APRPC"))
 
         FWAlertError("Apenas APROVADORES podem executar essa ação.", "Acesso negado")
@@ -306,10 +305,10 @@ User Function ZB1Apr2()
 
     // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios foram preenchidos etc.
     If lMsErroAuto
-    
+
         DisarmTransaction()
         MostraErro()
-    
+
     ElseIf ZB1->ZB1_LEGEND = "EFETIVADO"
 
         RecLock("ZB1")
@@ -373,10 +372,10 @@ User Function ZB1Can()
 
             // Verificação de erro padrão do MsExecAuto. Verifica campos em conflito, se tds campos obrigatorios estão inclusos etc.
             If lMsErroAuto
-            
+
                 DisarmTransaction()
                 MostraErro()
-            
+
             Else
 
                 RecLock("ZB1")
@@ -388,7 +387,7 @@ User Function ZB1Can()
             EndIf
 
             End Transaction
-        
+
         Else
 
             Return
@@ -425,7 +424,7 @@ User Function ZB1Rev()
         FWAlertError("Apenas pedidos EFETIVADOs podem entrar para REVISÃO", "Erro")
 
     EndIf
-    
+
 Return
 
 
@@ -435,23 +434,23 @@ User Function ZB1Del()
     If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND = "EM ABERTO"
 
         If MsgYesNo("Deseja excluir o título?", "Atenção")
-        
+
             FWExecView("Excluir", "MITMVC", 5)
-        
+
         Else
-        
+
             Return
-        
+
         EndIf
-    
+
     ElseIf !(cUserName $ ZB1->ZB1_NOMES)
-        
+
         FWAlertError("Apenas usuário que realizou a inclusão da prestação poderá excluir o registro", "Acesso negado!")
-    
+
     ElseIf ZB1->ZB1_LEGEND != "EM ABERTO"
-    
+
         FwAlertError("O status atual não permite a operação desejada", "Erro")
-    
+
     EndIf
 
 Return
@@ -465,7 +464,7 @@ User Function ZB1Rel()
 	private cPerg		:= "ZB1MIT"
 	Private cAlias      := GetNextAlias()
 
-	ReportDef()
+	oReport := ReportDef()
 
 	oReport:PrintDialog()
 
@@ -477,61 +476,60 @@ Static Function ReportDef()
     oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
 
     oSection := TRSection():New(oReport,,{"ZB1","SE2"})
-        TRCell():New(oSection,"ZB1_COD"     , cAlias,"Cod prestação"     ,, 14)
-        TRCell():New(oSection,"ZB1_SOLIC"   , cAlias,"Cod solic"         ,, 11)
-        TRCell():New(oSection,"ZB1_NOMES"   , cAlias,"Nome solic"        ,, 13)
-        TRCell():New(oSection,"ZB1_ORIGEM"  , cAlias,"Estado origem"     ,, 14)
-        TRCell():New(oSection,"ZB1_DEST"    , cAlias,"Estado destino"    ,, 16)
-        // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
-        TRCell():New(oSection,"ZB1_IDA"     , cAlias,"Ida"               ,, 8)
-        TRCell():New(oSection,"ZB1_VOLTA"   , cAlias,"Volta"             ,, 8)
-        // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
-        // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
-        // TRCell():New(oSection,"ZB1_CODAPR"  , cAlias,"Cod aprovador"     ,, 14)
-        // TRCell():New(oSection,"ZB1_NOMAPR"  , cAlias,"Nome aprovador"    ,, 15)
-        // TRCell():New(oSection,"ZB1_LEGEND"  , cAlias,"Status"            ,, 9)
+    TRCell():New(oSection,"ZB1_COD"     , cAlias,"Cod prestação"     ,, 14)
+    TRCell():New(oSection,"ZB1_SOLIC"   , cAlias,"Cod solic"         ,, 11)
+    TRCell():New(oSection,"ZB1_NOMES"   , cAlias,"Nome solic"        ,, 13)
+    TRCell():New(oSection,"ZB1_ORIGEM"  , cAlias,"Estado origem"     ,, 14)
+    TRCell():New(oSection,"ZB1_DEST"    , cAlias,"Estado destino"    ,, 16)
+    // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
+    TRCell():New(oSection,"ZB1_IDA"     , cAlias,"Ida"               ,, 8)
+    TRCell():New(oSection,"ZB1_VOLTA"   , cAlias,"Volta"             ,, 8)
+    // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
+    // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
+    // TRCell():New(oSection,"ZB1_CODAPR"  , cAlias,"Cod aprovador"     ,, 14)
+    // TRCell():New(oSection,"ZB1_NOMAPR"  , cAlias,"Nome aprovador"    ,, 15)
+    // TRCell():New(oSection,"ZB1_LEGEND"  , cAlias,"Status"            ,, 9)
 
-Return
+Return (oReport)
 
 
 Static Function PrintReport(oReport)
 
     Local oSection := oReport:Section(1)
+    Local cQuery := NIL
 
     SE2->(DBGoTop())
     ZB1->(DBGoTop())
 
     oSection:BeginQuery()
 
-    BeginSQL alias cAlias
-        SELECT ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_COD, ZB1_IDA, ZB1_VOLTA
-            FROM %table:ZB1% ZB1, %table:SE2% SE2
-            WHERE ZB1.D_E_L_E_T_ = " "
-                AND ZB1_COD     BETWEEN %exp:MV_PAR05% AND %exp:MV_PAR06%
-                AND ZB1_SOLIC   BETWEEN %exp:MV_PAR01% AND %exp:MV_PAR02%
-                AND ZB1_IDA     >= %exp:MV_PAR07%
-                AND ZB1_VOLTA   <= %exp:MV_PAR08%
-                AND ZB1_ORIGEM  =  %exp:MV_PAR03%
-                AND ZB1_DEST    =  %exp:MV_PAR04%
-                AND ZB1_LEGEND IN (
-                    CASE
-                        WHEN %exp:MV_PAR09% = "Todos cadastros"
-                            THEN ( SELECT ZB1_LEGEND FROM %table:ZB1% ZB1 )
-                            ELSE ( SELECT ZB1_LEGEND FROM %table:ZB1% ZB1
-                                WHERE ZB1_LEGEND = "Aprovado" )
-                    END )
-                AND E2_BAIXA IN (
-                    CASE
-                        WHEN %exp:MV_PAR10% = "NAO" THEN ""
-                        ELSE ( SELECT E2_BAIXA FROM %table:SE2% SE2 )
-                    END
-                )
-        ORDER BY ZB1_COD
-    EndSQL
+    cQuery :=   " SELECT ZB1_COD, ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_IDA, ZB1_VOLTA, E2_BAIXA "
+    cQuery +=   "    FROM ZB1990 "
+    cQuery +=   "    LEFT JOIN SE2990 ON ZB1_COD = E2_NUM "
+    cQuery +=   "    WHERE ZB1990.D_E_L_E_T_ = '' "
+    // cQuery +=   "        AND ZB1_COD     BETWEEN '" + MV_PAR05 + "' AND '" + MV_PAR06 + "' "
+    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" + MV_PAR01 + "' AND '" + MV_PAR02 + "' "
+    cQuery +=   "        AND ZB1_IDA     >=      '" + Dtos(MV_PAR07) + "'                  "
+    cQuery +=   "        AND ZB1_VOLTA   <=      '" + Dtos(MV_PAR08) + "'                  "
+    cQuery +=   "        AND ZB1_ORIGEM  =       '" + MV_PAR03 + "'                        "
+    cQuery +=   "        AND ZB1_DEST    =       '" + MV_PAR04 + "'                        "
+
+    // If %exp:MV_PAR09% = 'Todos cadastros'
+    //     cQuery +=   "        AND ZB1_LEGEND	= 'Aprovado' "
+    // EndIf
+    // If %exp:MV_PAR10% = 'SIM'
+    //     cQuery +=   "        AND E2_BAIXA IS NOT NULL "
+    //     cQuery +=   "        AND E2_BAIXA <> '' "
+    // EndIf
+
+    TcQuery cQuery new alias 'QRY'
+
+
+    // EndSQL
 
     oSection:EndQuery()
     oSection:PrintLine()
-    (cAlias)->(DbCloseArea())
+    DbCloseArea()
 
 Return
 
