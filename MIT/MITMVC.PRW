@@ -56,6 +56,7 @@ Static Function MenuDef()
     Local aRotina := {}
 
     ADD OPTION aRotina TITLE "Incluir"      ACTION "U_ZB1Add()"     OPERATION 3 ACCESS 0
+    ADD OPTION aRotina TITLE "teste"      ACTION "U_teste()"     OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Alterar"      ACTION "U_ZB1Alt()"     OPERATION 4 ACCESS 0
     ADD OPTION aRotina TITLE "Visualizar"   ACTION "VIEWDEF.MITMVC" OPERATION 2 ACCESS 0
     ADD OPTION aRotina TITLE "Efetivar"     ACTION "U_ZB1Efe()"     OPERATION 4 ACCESS 0
@@ -470,16 +471,19 @@ User Function ZB1Rel()
 Return
 
 
-Static Function ReportDef(QRY)
+Static Function ReportDef(cQRY)
 
     oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
-    oSection := TRSection():New(oReport,,QRY)
+    oSection := TRSection():New(oReport,,cQRY)
 
-    TRCell():New(oSection,"ZB1_COD"     , QRY,"Cod prestação"     ,, 14)
-    TRCell():New(oSection,"ZB1_SOLIC"   , QRY,"Cod solic"         ,, 11)
-    TRCell():New(oSection,"ZB1_NOMES"   , QRY,"Nome solic"        ,, 13)
-    TRCell():New(oSection,"ZB1_ORIGEM"  , QRY,"Estado origem"     ,, 14)
-    TRCell():New(oSection,"ZB1_DEST"    , QRY,"Estado destino"    ,, 16)
+    TRCell():New(oSection,"ZB1_COD"     , cQRY,"Cod prestação"     ,, 14)
+    TRCell():New(oSection,"ZB1_SOLIC"   , cQRY,"Cod solic"         ,, 11)
+    TRCell():New(oSection,"ZB1_NOMES"   , cQRY,"Nome solic"        ,, 13)
+    TRCell():New(oSection,"ZB1_ORIGEM"  , cQRY,"Estado origem"     ,, 14)
+    TRCell():New(oSection,"ZB1_DEST"    , cQRY,"Estado destino"    ,, 16)
+    // TRCell():New(oSection,"ZB1_IDA"     , QRY,"Data ida"          ,, 9,, {|| StoD()})
+    // TRCell():New(oSection,"ZB1_VOLTA"   , QRY,"Data volta"        ,, 9,, {|| StoD()})
+    // TRCell():New(oSection,"E2_BAIXA"    , QRY,"Estado destino"    ,, 16)
     // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
     // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
     // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
@@ -501,12 +505,12 @@ Static Function PrintReport(oReport)
     cQuery +=   "    FROM ZB1990                                                                            "
     cQuery +=   "    LEFT JOIN SE2990 ON ZB1_COD = E2_NUM                                                   "
     cQuery +=   "    WHERE ZB1990.D_E_L_E_T_ = ''                                                           "
-    cQuery +=   "        AND ZB1_COD     BETWEEN '" +      MV_PAR05 +   "' AND '" + MV_PAR06 + "'           "
-    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" +      MV_PAR01 +   "' AND '" + MV_PAR02 + "'           "
-    cQuery +=   "        AND ZB1_IDA     >=      '" + Dtos(MV_PAR07) +  "'                                  "
-    cQuery +=   "        AND ZB1_VOLTA   <=      '" + Dtos(MV_PAR08) +  "'                                  "
-    cQuery +=   "        AND ZB1_ORIGEM  =       '" +      MV_PAR03 +   "'                                  "
-    cQuery +=   "        AND ZB1_DEST    =       '" +      MV_PAR04 +   "'                                  "
+    cQuery +=   "        AND ZB1_COD     BETWEEN '" +      %exp:(MV_PAR05)%  +   "' AND '" + %exp:(MV_PAR06)% + "'           "
+    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" +      %exp:(MV_PAR01)%  +   "' AND '" + %exp:(MV_PAR02)% + "'           "
+    // cQuery +=   "        AND ZB1_IDA     >=      '" + MV_PAR07 +   "'                                  "
+    // cQuery +=   "        AND ZB1_VOLTA   <=      '" + MV_PAR08 +   "'                                  "
+    cQuery +=   "        AND ZB1_ORIGEM  =       '" +      %exp:(MV_PAR03)%  +   "'                                  "
+    cQuery +=   "        AND ZB1_DEST    =       '" +      %exp:(MV_PAR04)%  +   "'                                  "
 
     // If %exp:MV_PAR09% = 'Todos cadastros'
     //     cQuery +=   "        AND ZB1_LEGEND	= 'Aprovado' "
@@ -516,7 +520,7 @@ Static Function PrintReport(oReport)
     //     cQuery +=   "        AND E2_BAIXA <> '' "
     // EndIf
 
-    TcQuery cQuery new alias 'QRY'
+    TcQuery (cQuery) ALIAS cQRY
 
     oSection:EndQuery()
     oSection:PrintLine()

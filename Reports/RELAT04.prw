@@ -47,17 +47,17 @@ Static Function RPrint(oReport,cAlias)
 
         BeginSQL Alias cAlias
 
-            SELECT 
+            SELECT
                 F1_DOC,
-                F1_SERIE, 
-                F1_FORNECE, 
-                F1_EMISSAO 
+                F1_SERIE,
+                F1_FORNECE,
+                F1_EMISSAO
             FROM %Table:SF1% SF1
             WHERE D_E_L_E_T_ =''
 
             SELECT
                 D1_ITEM, 
-                D1_COD, 
+                D1_COD,
                 D1_QUANT, 
                 D1_VUNIT, 
                 D1_TOTAL
