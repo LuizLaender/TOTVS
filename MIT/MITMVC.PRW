@@ -475,27 +475,47 @@ Static Function ReportDef()
     oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
     oSection := TRSection():New(oReport,,{"QRY"})
 
-    TRCell():New(oSection,"ZB1_COD"     , "QRY","Cod prestação"     ,, 14)
-    TRCell():New(oSection,"ZB1_SOLIC"   , "QRY","Cod solic"         ,, 11)
-    TRCell():New(oSection,"ZB1_NOMES"   , "QRY","Nome solic"        ,, 13)
-    TRCell():New(oSection,"ZB1_ORIGEM"  , "QRY","Estado origem"     ,, 14)
-    TRCell():New(oSection,"ZB1_DEST"    , "QRY","Estado destino"    ,, 16)
-Return (oReport) //---------
+    TRCell():New(oSection,"ZB1_COD"         , "QRY","Cod prestação"     ,, 14   )
+    TRCell():New(oSection,"ZB1_SOLIC"       , "QRY","Cod solic"         ,, 11   )
+    TRCell():New(oSection,"ZB1_NOMES"       , "QRY","Nome solic"        ,, 13   )
+    TRCell():New(oSection,"ZB1_ORIGEM"      , "QRY","Estado origem"     ,, 14   )
+    TRCell():New(oSection,"ZB1_DEST"        , "QRY","Estado destino"    ,, 16   )
+    TRCell():New(oSection,"ZB1_IDA"         , "QRY","Data ida"          ,, 9 ,, {||SToD(QRY->ZB1_IDA)} )
+    TRCell():New(oSection,"ZB1_VOLTA"       , "QRY","Data volta"        ,, 9 ,, {||SToD(QRY->ZB1_VOLTA)} )
+    TRCell():New(oSection,"ZB1_CDEST"       , "QRY","Cidade destino"    ,, 16   )
+    TRCell():New(oSection,"ZB1_DURACA"      , "QRY","Duração"           ,, 7    )
+    TRCell():New(oSection,"ZB1_VALOR"       , "QRY","Valor"             ,, 5    )
+    TRCell():New(oSection,"ZB1_LEGEND"      , "QRY","Status"            ,, 9    )
+Return (oReport)
+
+    // StoD(QRY->"ZB1_VOLTA")
 
 Static Function PrintReport(oReport)
     Local oSection := oReport:Section(1)
     Local cQuery
 
-    cQuery :=   " SELECT ZB1_COD, ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST "/*E2_BAIXA, ZB1_IDA, ZB1_VOLTA*/
-    cQuery +=   "    FROM ZB1990                                                                            "
-    cQuery +=   "    LEFT JOIN SE2990 ON ZB1_COD = E2_NUM                                                   "
-    cQuery +=   "    WHERE ZB1990.D_E_L_E_T_ = ''                                                           "
-    cQuery +=   "        AND ZB1_COD     BETWEEN '" + MV_PAR05 + "' AND '" + MV_PAR06 + "'  "
-    cQuery +=   "        AND ZB1_SOLIC   BETWEEN '" + MV_PAR01 + "' AND '" + MV_PAR02 + "'  "
-    // cQuery +=   "        AND ZB1_IDA     >=      '" + MV_PAR07 + "'                                 "
-    // cQuery +=   "        AND ZB1_VOLTA   <=      '" + MV_PAR08 + "'                                 "
-    cQuery +=   "        AND ZB1_ORIGEM  =       '" + MV_PAR03 + "'                                 "
-    cQuery +=   "        AND ZB1_DEST    =       '" + MV_PAR04 + "'                                 "
+    cQuery :=   " SELECT                                                                            "
+    cQuery +=   "   ZB1_COD, ZB1_SOLIC, ZB1_NOMES, ZB1_ORIGEM, ZB1_DEST, ZB1_IDA, ZB1_VOLTA,        "
+    cQuery +=   "   ZB1_CDEST, ZB1_DURACA, ZB1_VALOR, ZB1_LEGEND,                                   "
+    cQuery +=   "   E2_BAIXA                                                                        "
+    cQuery +=   "       FROM ZB1990                                                                 "
+    cQuery +=   "       LEFT JOIN SE2990 ON ZB1_COD = E2_NUM                                        "
+    cQuery +=   "       WHERE ZB1990.D_E_L_E_T_ = ''                                                "
+    cQuery +=   "           AND ZB1_COD     BETWEEN '" +      MV_PAR05  + "' AND '" + MV_PAR06 + "' "
+    cQuery +=   "           AND ZB1_SOLIC   BETWEEN '" +      MV_PAR01  + "' AND '" + MV_PAR02 + "' "
+    cQuery +=   "           AND ZB1_IDA     >=      '" + DtoS(MV_PAR07) + "'                        "
+    cQuery +=   "           AND ZB1_VOLTA   <=      '" + DtoS(MV_PAR08) + "'                        "
+    cQuery +=   "           AND ZB1_ORIGEM  =       '" +      MV_PAR03  + "'                        "
+    cQuery +=   "           AND ZB1_DEST    =       '" +      MV_PAR04  + "'                        "
+
+    If %exp:MV_PAR09% = 'TODOS'
+        cQuery +=   "    AND ZB1_LEGEND	= 'Aprovado' "
+    EndIf
+
+    If %exp:MV_PAR10% = 'SIM'
+        cQuery +=   "        AND E2_BAIXA IS NOT NULL "
+        cQuery +=   "        AND E2_BAIXA <> '' "
+    EndIf
 
     If Select("QRY") > 0
         QRY->(DbCloseArea())
@@ -515,23 +535,3 @@ Static Function PrintReport(oReport)
     oSection:Finish()
 
 Return
-
-
-
-    // TRCell():New(oSection,"ZB1_IDA"     , QRY,"Data ida"          ,, 9,, {|| StoD()})
-    // TRCell():New(oSection,"ZB1_VOLTA"   , QRY,"Data volta"        ,, 9,, {|| StoD()})
-    // TRCell():New(oSection,"E2_BAIXA"    , QRY,"Estado destino"    ,, 16)
-    // TRCell():New(oSection,"ZB1_CDEST"   , cAlias,"Cidade destino"    ,, 16)
-    // TRCell():New(oSection,"ZB1_DURACA"  , cAlias,"Duração"           ,, 7)
-    // TRCell():New(oSection,"ZB1_VALOR"   , cAlias,"Valor"             ,, 5)
-    // TRCell():New(oSection,"ZB1_CODAPR"  , cAlias,"Cod aprovador"     ,, 14)
-    // TRCell():New(oSection,"ZB1_NOMAPR"  , cAlias,"Nome aprovador"    ,, 15)
-    // TRCell():New(oSection,"ZB1_LEGEND"  , cAlias,"Status"            ,, 9)
-
-    // If %exp:MV_PAR09% = 'Todos cadastros'
-    //     cQuery +=   "        AND ZB1_LEGEND	= 'Aprovado' "
-    // EndIf
-    // If %exp:MV_PAR10% = 'SIM'
-    //     cQuery +=   "        AND E2_BAIXA IS NOT NULL "
-    //     cQuery +=   "        AND E2_BAIXA <> '' "
-    // EndIf
