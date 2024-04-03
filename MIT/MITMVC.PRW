@@ -502,8 +502,7 @@ Static Function PrintReport(oReport)
     cQuery +=   "       FROM ZB1990                                                                 "
     cQuery +=   "       LEFT JOIN SE2990 ON ZB1_COD = E2_NUM                                        "
     cQuery +=   "       WHERE ZB1990.D_E_L_E_T_ = ''                                                "
-    cQuery +=   "           AND ZB1_COD     BETWEEN '" +      MV_PAR05  + "' AND '" + MV_PAR06 + "' "
-    cQuery +=   "           AND ZB1_SOLIC   BETWEEN '" +      MV_PAR01  + "' AND '" + MV_PAR02 + "' "
+    cQuery +=   "           AND ZB1_COD BETWEEN     '" + MV_PAR05       + "' AND '" + MV_PAR06 + "' "
     cQuery +=   "           AND ZB1_IDA     >=      '" + DtoS(MV_PAR07) + "'                        "
     cQuery +=   "           AND ZB1_VOLTA   <=      '" + DtoS(MV_PAR08) + "'                        "
     cQuery +=   "           AND ZB1_ORIGEM  =       '" +      MV_PAR03  + "'                        "
@@ -512,6 +511,12 @@ Static Function PrintReport(oReport)
 
     If MV_PAR09 = 'APROVADOS'
         cQuery += " AND ZB1_LEGEND = 'Aprovado' "
+    EndIf
+
+    If cUserName $ GetMV("MZ_APRPC")
+        cQuery +=   " AND ZB1_SOLIC BETWEEN '" + MV_PAR01 + "' AND '" + MV_PAR02 + "' "
+    Else
+        cQuery += " AND ZB1_SOLIC = '" + __cUserID + "' "
     EndIf
 
     If Select("QRY") > 0
