@@ -486,6 +486,7 @@ Static Function ReportDef()
     TRCell():New(oSection,"ZB1_DURACA"      , "QRY","Duração"           ,, 7    )
     TRCell():New(oSection,"ZB1_VALOR"       , "QRY","Valor"             ,, 5    )
     TRCell():New(oSection,"ZB1_LEGEND"      , "QRY","Status"            ,, 9    )
+    TRCell():New(oSection,"E2_BAIXA"        , "QRY","Data pg."          ,, 9 ,, {||SToD(QRY->E2_BAIXA)} )
 Return (oReport)
 
     // StoD(QRY->"ZB1_VOLTA")
@@ -507,14 +508,10 @@ Static Function PrintReport(oReport)
     cQuery +=   "           AND ZB1_VOLTA   <=      '" + DtoS(MV_PAR08) + "'                        "
     cQuery +=   "           AND ZB1_ORIGEM  =       '" +      MV_PAR03  + "'                        "
     cQuery +=   "           AND ZB1_DEST    =       '" +      MV_PAR04  + "'                        "
+    cQuery +=   "           AND ('" + MV_PAR10 + "' = 'SIM' OR E2_BAIXA IS NULL OR E2_BAIXA = '' )  "
 
-    If %exp:MV_PAR09% = 'TODOS'
-        cQuery +=   "    AND ZB1_LEGEND	= 'Aprovado' "
-    EndIf
-
-    If %exp:MV_PAR10% = 'SIM'
-        cQuery +=   "        AND E2_BAIXA IS NOT NULL "
-        cQuery +=   "        AND E2_BAIXA <> '' "
+    If MV_PAR09 = 'APROVADOS'
+        cQuery += " AND ZB1_LEGEND = 'Aprovado' "
     EndIf
 
     If Select("QRY") > 0
