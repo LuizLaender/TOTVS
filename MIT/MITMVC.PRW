@@ -7,16 +7,14 @@ Static cTitulo := "Tela MIT"
 Static cAliasMVC := "ZB1"
 
 
-/*/-------------------------------------
+/*/---------------------------------------------------
 {Protheus.doc} User function MIT02
-Tela da MIT proposta pelas analistas
+Tela em MVC para nova rotina de prestação de contas
 @type user function
 @author Luiz Lustosa
 @since 11/03/2024
-@version 2.0
--------------------------------------/*/
-
-
+@version 1.0
+---------------------------------------------------/*/
 User Function MIT02()
 
     Local   aArea   := FWGetArea()
@@ -34,7 +32,9 @@ User Function MIT02()
 
     // Filtro responsável por mostrar apenas as PCs criadas pelo usuário logado
     If cUserName != GetMV("MZ_APRPC")
+
         oBrowse:SetFilterDefault("ZB1->ZB1_NOMES == cUserName")
+
     EndIf
 
     // Legenda representando o status atual de cada PC
@@ -51,6 +51,14 @@ User Function MIT02()
 Return
 
 
+/*/----------------------------
+{Protheus.doc} MenuDef
+Retorna o menu principal
+@type Static Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 Static Function MenuDef()
 
     Local aRotina := {}
@@ -69,6 +77,14 @@ Static Function MenuDef()
 Return aRotina
 
 
+/*/----------------------------
+{Protheus.doc} ModelDef
+Construcao do modelo de dados
+@type Static Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 Static Function ModelDef()
 
     Local oModel
@@ -79,7 +95,6 @@ Static Function ModelDef()
 
         // O bloco {|| .T.}) PERMITE alteração. As estruturas a seguir serão ultilizadas em rotina de "APROVAÇÃO" pelo APROVADOr.
         oStruct:SetProperty("ZB1_OBSAPR", MODEL_FIELD_WHEN, {|| .T.})
-
         oStruct:SetProperty("ZB1_DEST"  , MODEL_FIELD_WHEN, {|| .F.})
         oStruct:SetProperty("ZB1_CDEST" , MODEL_FIELD_WHEN, {|| .F.})
         oStruct:SetProperty("ZB1_IDA"   , MODEL_FIELD_WHEN, {|| .F.})
@@ -90,7 +105,6 @@ Static Function ModelDef()
 
         // O bloco {|| .F.}) NAO permite alteração. As estruturas a seguir serão ultilizadas em rotina de "ALTERAÇÃO" pelo funcionário.
         oStruct:SetProperty("ZB1_OBSAPR", MODEL_FIELD_WHEN, {|| .F.})
-
         oStruct:SetProperty("ZB1_DEST"  , MODEL_FIELD_WHEN, {|| .T.})
         oStruct:SetProperty("ZB1_CDEST" , MODEL_FIELD_WHEN, {|| .T.})
         oStruct:SetProperty("ZB1_IDA"   , MODEL_FIELD_WHEN, {|| .T.})
@@ -106,6 +120,14 @@ Static Function ModelDef()
 Return oModel
 
 
+/*/----------------------------
+{Protheus.doc} ViewDef
+Monta o view do modelo
+@type Static Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 Static Function ViewDef()
 
     Local oModel  := ModelDef()
@@ -114,8 +136,7 @@ Static Function ViewDef()
 
     oView := FWFormView():New()
     oView:AddUserButton("Aprovação" , "VIEW_ZB1", {|oView| U_ZB1Apr2()})
-    oView:AddUserButton("REVISÃO  "   , "VIEW_ZB1", {|oView| U_ZB1Rev()})
-
+    oView:AddUserButton("REVISÃO  " , "VIEW_ZB1", {|oView| U_ZB1Rev()})
     oView:SetModel(oModel)
     oView:AddField("VIEW_ZB1", oStruct, "MASTERZB1")
     oView:CreateHorizontalBox("TELA" , 100 )
@@ -127,7 +148,14 @@ Static Function ViewDef()
 Return oView
 
 
-// Função chamada ao clicar em "confirmar". Confere se as datas são válidas
+/*/----------------------------
+{Protheus.doc} U_TudoOk
+Validacao da tela
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 User Function TudoOk(oModel)
 
     Local cQuery
@@ -157,7 +185,14 @@ User Function TudoOk(oModel)
 Return lRet
 
 
-// Função responsável por criar o botão "legenda" em "outras ações" da tela principal
+/*/----------------------------
+{Protheus.doc} U_ZB1Leg
+Cria botao 'legenda'
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 User Function ZB1Leg()
 
     Local aLegenda := {}
@@ -173,7 +208,14 @@ User Function ZB1Leg()
 Return aLegenda
 
 
-//Função responsável por verificar se pode ser feita inclusão.
+/*/------------------------
+{Protheus.doc} U_ZB1Add
+Abre tela de inclusao
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+------------------------/*/
 User Function ZB1Add()
 
     If cUsername $ GetMV("MZ_APRPC")
@@ -190,10 +232,17 @@ User Function ZB1Add()
 Return
 
 
-// Função que verifica se o registro pode ou não ser alterado.
+/*/------------------------
+{Protheus.doc} U_ZB1Alt
+Abre tela de alteracao
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+------------------------/*/
 User Function ZB1Alt()
 
-    If (ZB1->ZB1_LEGEND = "EM ABERTO" .And. cUserName $ ZB1->ZB1_NOMES) // .OR. (cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "E")
+    If (ZB1->ZB1_LEGEND = "EM ABERTO" .And. cUserName $ ZB1->ZB1_NOMES)
 
         FWExecView("Alteração", "MITMVC", 4, , { || .T. })
         Return .T.
@@ -213,7 +262,14 @@ User Function ZB1Alt()
 Return
 
 
-// Função responsável por efetivar as PCs
+/*/----------------------------
+{Protheus.doc} U_ZB1Efe
+Efetiva prestacao de compra
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+----------------------------/*/
 User Function ZB1Efe()
 
     If cUsername == GetMV("MZ_APRPC")
@@ -241,7 +297,14 @@ User Function ZB1Efe()
 Return
 
 
-// Função responsável por abrir a rotina de aprovação.
+/*/-----------------------
+{Protheus.doc} U_ZB1Apr1
+Abre rotina de aprovacao
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+-----------------------/*/
 User Function ZB1Apr1()
 
     Local aButtons :={{.F.,Nil},{.F.,Nil},{.F.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.F.,"Aprovar"},{.T.,"Cancelar"},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil},{.T.,Nil}}
@@ -249,9 +312,7 @@ User Function ZB1Apr1()
     If cUserName $ GetMV("MZ_APRPC") .And. ZB1->ZB1_LEGEND = "EFETIVADO"
 
         lAprova := .T.
-
         FWExecView("Aprovação", "MITMVC", 4, , { || .T. },,,aButtons)
-
         lAprova := .F.
 
     ElseIf !(cUserName $ GetMV("MZ_APRPC"))
@@ -267,15 +328,20 @@ User Function ZB1Apr1()
 Return
 
 
-// Função responsável por aprovar as PCs. Aprovar PCs = incluir dados do título selecionado em um novo título da rotina FINA050.
+/*/-------------------------
+{Protheus.doc} U_ZB1Apr2
+Aprova prestacoes de compra
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+-------------------------/*/
 User Function ZB1Apr2()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem transferidos
     Private aTransf  := {}
-
     // Tratamento de erro do MsExecAuto
     Private lMsErroAuto := .F.
-
     // Variáveis com conteúdo dos campos obrigatórios da rotina FINA050
     Private cPrefix     := SuperGetMV('MS_PREFIX'   , .F., "TPC"        )
     Private cNumTit     := ZB1->ZB1_COD
@@ -315,7 +381,6 @@ User Function ZB1Apr2()
         RecLock("ZB1")
         ZB1->ZB1_LEGEND := "APROVADO "
         ZB1->(msunlock())
-
         FWAlertSuccess("Título APROVADO com êxito", "Sucesso")
 
     ElseIf ZB1->ZB1_LEGEND != "EFETIVADO"
@@ -329,7 +394,14 @@ User Function ZB1Apr2()
 Return
 
 
-// Função responsável por cancelar as PCs aprovadas. Cancelar PCs = deletar o respectivo registo da FINA050.
+/*/--------------------------
+{Protheus.doc} U_ZB1Can
+Cancela prestacoes de compra
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+--------------------------/*/
 User Function ZB1Can()
 
     // Variável ultilizada no MsExecAuto para receber arrays contendo campo e conteudos a serem deletados
@@ -361,13 +433,12 @@ User Function ZB1Can()
     aAdd(aTransf, {"E2_VALOR"    , ZB1->ZB1_VALOR   , NIL})
     aAdd(aTransf, {"E2_VLCRUZ"   , ZB1->ZB1_VALOR   , NIL})
 
-    // Verifica se usuario é APROVADOr e se pedido está APROVADO para que possa ser CANCELADO, então o cancela.
+    // Verifica se usuario é APROVADOR e se pedido está APROVADO para que possa ser CANCELADO, então o cancela.
     If ZB1->ZB1_LEGEND = "APROVADO " .And. cUsername == GetMV("MZ_APRPC")
 
         If MsgYesNo("Título consta EM ABERTO, ao cancelar essa solicitação, o título gerado também será CANCELADO.", "Deseja prosseguir?")
 
             Begin Transaction
-
             // Função padrão TOTVS responsável por transferir os dados de uma rotina para outra, neste caso os deleta.
             MsExecAuto({|x,y,z| FINA050(x,y,z)}, aTransf, , 5)
 
@@ -382,7 +453,6 @@ User Function ZB1Can()
                 RecLock("ZB1")
                 ZB1->ZB1_LEGEND := "CANCELADO"
                 ZB1->(msunlock())
-
                 FWAlertSuccess("Título CANCELADO com êxito", "Sucesso")
 
             EndIf
@@ -408,7 +478,14 @@ User Function ZB1Can()
 Return
 
 
-// Função responsável por "Revisar" PCs = volta PC para estado "EM ABERTO"
+/*/------------------------------------
+{Protheus.doc} U_ZB1Rev
+Manda prestacao de compra para revisao
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+------------------------------------/*/
 User Function ZB1Rev()
 
     If ZB1->ZB1_LEGEND = "EFETIVADO"
@@ -417,7 +494,6 @@ User Function ZB1Rev()
         ZB1->ZB1_OBSAPR := M->ZB1_OBSAPR
         ZB1->ZB1_LEGEND := "REVISÃO  "
         ZB1->(msunlock())
-
         FWAlertSuccess("Título em REVISÃO", "Sucesso")
 
     ElseIf ZB1->ZB1_LEGEND != "EFETIVADO"
@@ -429,7 +505,14 @@ User Function ZB1Rev()
 Return
 
 
-// Função responsável por deletar PCs.
+/*/-------------------------
+{Protheus.doc} U_ZB1Del
+Deleta prestacoes de compra
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+-------------------------/*/
 User Function ZB1Del()
 
     If cUserName $ ZB1->ZB1_NOMES .And. ZB1->ZB1_LEGEND = "EM ABERTO"
@@ -457,8 +540,16 @@ User Function ZB1Del()
 Return
 
 
-// Função responsável pelo relatório
+/*/-------------------------
+{Protheus.doc} U_ZB1Rel
+Gera relatorio
+@type User Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+-------------------------/*/
 User Function ZB1Rel()
+
 	Private oReport     := NIL
 	Private oSection    := NIL
 	Private cPerg		:= "ZB1MIT"
@@ -469,9 +560,20 @@ User Function ZB1Rel()
 
     // Monta tela de impressão
 	oReport:PrintDialog()
+
 Return
 
+
+/*/--------------------------
+{Protheus.doc} ReportDef
+Monta estrutura do relatorio
+@type Static Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+--------------------------/*/
 Static Function ReportDef()
+
     oReport := TReport():New("Relatório",,cPerg,{|oReport|PrintReport(oReport)})
     oSection := TRSection():New(oReport,,{"QRY"})
 
@@ -487,11 +589,20 @@ Static Function ReportDef()
     TRCell():New(oSection,"ZB1_VALOR"       , "QRY","Valor"             ,, 5    )
     TRCell():New(oSection,"ZB1_LEGEND"      , "QRY","Status"            ,, 9    )
     TRCell():New(oSection,"E2_BAIXA"        , "QRY","Data pg."          ,, 9 ,, {||SToD(QRY->E2_BAIXA)} )
+
 Return (oReport)
 
-    // StoD(QRY->"ZB1_VOLTA")
 
+/*/-------------------------------
+{Protheus.doc} PrintReport
+Busca e inclui dados ao relatorio
+@type Static Function
+@author Luiz Lustosa
+@since 11/03/2024
+@version 1.0
+-------------------------------/*/
 Static Function PrintReport(oReport)
+
     Local oSection := oReport:Section(1)
     Local cQuery
 
@@ -510,17 +621,25 @@ Static Function PrintReport(oReport)
     cQuery +=   "           AND ('" + MV_PAR10 + "' = 'SIM' OR E2_BAIXA IS NULL OR E2_BAIXA = '' )  "
 
     If MV_PAR09 = 'APROVADOS'
+
         cQuery += " AND ZB1_LEGEND = 'Aprovado' "
+
     EndIf
 
     If cUserName $ GetMV("MZ_APRPC")
+
         cQuery +=   " AND ZB1_SOLIC BETWEEN '" + MV_PAR01 + "' AND '" + MV_PAR02 + "' "
+
     Else
+
         cQuery += " AND ZB1_SOLIC = '" + __cUserID + "' "
+
     EndIf
 
     If Select("QRY") > 0
+
         QRY->(DbCloseArea())
+
     EndIf
 
     TcQuery cQuery New Alias "QRY"
@@ -530,8 +649,10 @@ Static Function PrintReport(oReport)
     DbGoTop()
 
     While QRY->(!EoF())
+
         oSection:PrintLine()
         DbSkip()
+
     EndDo
 
     oSection:Finish()
