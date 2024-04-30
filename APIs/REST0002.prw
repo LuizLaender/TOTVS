@@ -16,7 +16,7 @@ user function REST0002()
     If oRest:Get()
         MsgAlert(oRest:GetResult())
     Else
-        MsgAlert(oRest:GerLastError())
+        MsgAlert(oRest:GetLastError())
     EndIf
 
 Return
