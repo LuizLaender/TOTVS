@@ -3,7 +3,7 @@
 user function REST0002()
 
     Local cUrl  := 'http://localhost:8080/rest/'
-    Local cPath := 'helloworld'
+    Local cPath := 'helloworld?mensagem=testing'
     Local oRest
 
     //instancia o objeto
