@@ -7,6 +7,10 @@ WSRESTFUL clientes DESCRIPTION "crud para cadastro de clientes" FORMAT "applicat
     WSMETHOD GET    DESCRIPTION 'Exibe lista de Clientes'   WSSYNTAX '/clientes/{}'
     WSMETHOD POST   DESCRIPTION 'Inclui Clientes'           WSSYNTAX '/clientes/{}'
 
+    WSDATA A1_COD   as Optional
+    WSDATA A1_LOJA  as Optional
+    WSMETHOD PUT    DESCRIPTION 'Alteração de Clientes'     WSSYNTAX '/clientes/{A1_COD,A1_LOJA}'
+
 END WSRESTFUL
 
 WSMETHOD GET WSSERVICE clientes
@@ -59,11 +63,12 @@ WSMETHOD POST WSSERVICE clientes
 
     oJson:FromJson(cJson)
 
-    aRet := RestCliente(oJson, 3)
+    aRet := RestCliente(oJson, 3) // POST
 
     If aRet[1]
         oResponse['status']     := 201
         oResponse['message']    := aRet[2]
+        ::SetResponse(oResponse:toJson())
     Else
         lRet := .F.
         SetRestFault(400, aRet[2])
@@ -71,7 +76,51 @@ WSMETHOD POST WSSERVICE clientes
 
 Return lRet
 
-Static Function RestCliente(oJson, nOpc)
+WSMETHOD PUT WSRECEIVE A1_COD, A1_LOJA WSSERVICE clientes
+
+    Local lRet  := .T.
+    Local cJson := ::GetContent()
+    Local aRet  := {}
+    Local oResponse, oJson
+
+    ::SetContentType()
+
+    ConOut(cJson)
+
+    oResponse   := JsonObject():New()
+    oJson       := JsonObject():New()
+
+    oJson:FromJson(cJson)
+
+    If ValType(::A1_COD) == 'U' .OR. ValType(::A1_LOJA) == 'U'
+        SetRestFault(400, 'Informe como parametro da url o codigo do cliente e loja')
+        lRet := .F.
+
+    Else
+        SA1->(DbSetOrder(1)) // FILIAL + CODIGO + LOJA
+
+        If SA1->(DbSeek(xFilial('SA1') + ::A1_COD + ::A1_LOJA))
+            aRet := RestCliente(oJson, 4, ::A1_COD, ::A1_LOJA) // PUT
+
+            If aRet[1]
+                oResponse['status']     := 201
+                oResponse['message']    := aRet[2]
+                ::SetResponse(oResponse:toJson())
+
+            Else
+                lRet := .F.
+                SetRestFault(400, aRet[2])
+            EndIf
+
+        Else
+            SetRestFault(400, 'Cliente não foi localizado')
+            lRet := .F.
+        EndIf
+    EndIf
+
+Return lRet
+
+Static Function RestCliente(oJson, nOpc, cCodCli, cLoja)
 
     Local aRet      := {}
     Local aDados    := {}
@@ -80,8 +129,14 @@ Static Function RestCliente(oJson, nOpc)
 
     Private lMsErroAuto := .F.
 
-    aAdd(aDados,{'A1_COD'   , oJson['A1_COD']   , nil})
-    aAdd(aDados,{'A1_LOJA'  , oJson['A1_LOJA']  , nil})
+    If nOpc == 4
+        aAdd(aDados,{'A1_COD'   , cCodCli   , nil})
+        aAdd(aDados,{'A1_LOJA'  , cLoja     , nil})
+    Else
+        aAdd(aDados,{'A1_COD'   , oJson['A1_COD']   , nil})
+        aAdd(aDados,{'A1_LOJA'  , oJson['A1_LOJA']  , nil})
+    EndIf
+
     aAdd(aDados,{'A1_NOME'  , oJson['A1_NOME']  , nil})
     aAdd(aDados,{'A1_END'   , oJson['A1_END']   , nil})
     aAdd(aDados,{'A1_NREDUZ', oJson['A1_NREDUZ'], nil})
@@ -96,7 +151,12 @@ Static Function RestCliente(oJson, nOpc)
         cMsg := MemoRead('\system\' + cArqErro)
         aRet := (.F., cMsg)
     Else
-        aRet := (.T., 'Cliente incluído com sucesso')
+        If nOpc == 3
+            cMsgRet := 'incluido'
+        ElseIf nOpc == 4
+            cMsgRet := 'alterado'
+        EndIf
+        aRet := (.T., 'Cliente ' +cMsgRet+ ' com sucesso')
     EndIf
 
 Return aRet
@@ -110,15 +170,15 @@ User Function testecli // Função obsoleta para o propósito desse método POST, ul
     oJson := JsonObject():New()
 
     oJson['A1_COD']                     := 'teste'
-    oJson['A1_LOJA']                    := '08'
-    oJson['A1_NOME']                    := 'joao'
+    oJson['A1_LOJA']                    := '09'
+    oJson['A1_NOME']                    := 'PEDRO'
     oJson['A1_END']                     := 'endereco'
     oJson['A1_NREDUZ']/*Nome fantasia*/ := 'nome fantasia'
     oJson['A1_TIPO'] /*F - Cons.Final*/ := 'F'
     oJson['A1_EST']                     := 'RN'
     oJson['A1_MUN']                     := 'Natal'
 
-    aRet := RestCliente(oJson, 3)
+    aRet := RestCliente(oJson, 4)
 
     MsgAlert(aRet) // Mensagem aparece no AppServer-Console
 
