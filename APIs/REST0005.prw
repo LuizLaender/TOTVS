@@ -1,8 +1,12 @@
 #include 'protheus.ch'
 #include 'restful.ch'
+#include 'tbiconn.ch'
 
 WSRESTFUL clientes DESCRIPTION "crud para cadastro de clientes" FORMAT "application/json"
-    WSMETHOD GET DESCRIPTION 'Lista de Clientes' WSSYNTAX '/clientes/{}'
+
+    WSMETHOD GET    DESCRIPTION 'Exibe lista de Clientes'   WSSYNTAX '/clientes/{}'
+    WSMETHOD POST   DESCRIPTION 'Inclui Clientes'           WSSYNTAX '/clientes/{}'
+
 END WSRESTFUL
 
 WSMETHOD GET WSSERVICE clientes
@@ -38,3 +42,84 @@ WSMETHOD GET WSSERVICE clientes
     ::SetResponse(oResponse:ToJson())
 
 Return lRet
+
+WSMETHOD POST WSSERVICE clientes
+
+    Local lRet  := .T.
+    Local cJson := ::GetContent()
+    Local aRet  := {}
+    Local oResponse, oJson
+
+    ::SetContentType()
+
+    ConOut(cJson)
+
+    oResponse   := JsonObject():New()
+    oJson       := JsonObject():New()
+
+    oJson:FromJson(cJson)
+
+    aRet := RestCliente(oJson, 3)
+
+    If aRet[1]
+        oResponse['status']     := 201
+        oResponse['message']    := aRet[2]
+    Else
+        lRet := .F.
+        SetRestFault(400, aRet[2])
+    EndIf
+
+Return lRet
+
+Static Function RestCliente(oJson, nOpc)
+
+    Local aRet      := {}
+    Local aDados    := {}
+    Local cArqErro  := 'ErroAutoExec.txt'
+    Local cMsg
+
+    Private lMsErroAuto := .F.
+
+    aAdd(aDados,{'A1_COD'   , oJson['A1_COD']   , nil})
+    aAdd(aDados,{'A1_LOJA'  , oJson['A1_LOJA']  , nil})
+    aAdd(aDados,{'A1_NOME'  , oJson['A1_NOME']  , nil})
+    aAdd(aDados,{'A1_END'   , oJson['A1_END']   , nil})
+    aAdd(aDados,{'A1_NREDUZ', oJson['A1_NREDUZ'], nil})
+    aAdd(aDados,{'A1_TIPO'  , oJson['A1_TIPO']  , nil})
+    aAdd(aDados,{'A1_EST'   , oJson['A1_EST']   , nil})
+    aAdd(aDados,{'A1_MUN'   , oJson['A1_MUN']   , nil})
+
+    MSExecAuto({|x,y| Mata030(x,y)}, aDados, nOpc)
+
+    If lMsErroAuto
+        MostraErro('\system\', cArqErro)
+        cMsg := MemoRead('\system\' + cArqErro)
+        aRet := (.F., cMsg)
+    Else
+        aRet := (.T., 'Cliente incluído com sucesso')
+    EndIf
+
+Return aRet
+
+User Function testecli
+
+    Local oJson
+
+    PREPARE ENVIRONMENT EMPRESA '99' FILIAL '01'
+
+    oJson := JsonObject():New()
+
+    oJson['A1_COD']                     := 'teste'
+    oJson['A1_LOJA']                    := '08'
+    oJson['A1_NOME']                    := 'joao'
+    oJson['A1_END']                     := 'endereco'
+    oJson['A1_NREDUZ']/*Nome fantasia*/ := 'nome fantasia'
+    oJson['A1_TIPO'] /*F - Cons.Final*/ := 'F'
+    oJson['A1_EST']                     := 'RN'
+    oJson['A1_MUN']                     := 'Natal'
+
+    aRet := RestCliente(oJson, 3)
+
+    MsgAlert(aRet) // Mensagem aparece no AppServer-Console
+
+Return
