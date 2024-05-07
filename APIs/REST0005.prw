@@ -101,7 +101,7 @@ Static Function RestCliente(oJson, nOpc)
 
 Return aRet
 
-User Function testecli
+User Function testecli // Função obsoleta para o propósito desse método POST, ultilizada apenas para testes.
 
     Local oJson
 
