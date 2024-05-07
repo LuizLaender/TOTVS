@@ -149,14 +149,14 @@ Static Function RestCliente(oJson, nOpc, cCodCli, cLoja)
     If lMsErroAuto
         MostraErro('\system\', cArqErro)
         cMsg := MemoRead('\system\' + cArqErro)
-        aRet := (.F., cMsg)
+        aRet := {.F., cMsg}
     Else
         If nOpc == 3
             cMsgRet := 'incluido'
         ElseIf nOpc == 4
             cMsgRet := 'alterado'
         EndIf
-        aRet := (.T., 'Cliente ' +cMsgRet+ ' com sucesso')
+        aRet := {.T., 'Cliente ' +cMsgRet+ ' com sucesso'}
     EndIf
 
 Return aRet
